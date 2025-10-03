@@ -9,11 +9,10 @@ from io import BytesIO
 # ----------------------------
 st.set_page_config(
     page_title="Validador de Embalagens e Preços",
-    page_icon="🍫",
     layout="wide"
 )
 
-st.title("🍫 Validador de Embalagens e Preços")
+st.markdown("<h1 style='text-align: center;'>Validador de Mapeio e Preços</h1>", unsafe_allow_html=True)
 st.markdown("""
 Esta ferramenta permite:
 - Validar a quantidade de embalagem (`QtdEmbalagem` e `QtdEmbalagemGramas`)
@@ -92,6 +91,16 @@ def to_excel(df):
     df.to_excel(output, index=False)
     return output.getvalue()
 
+def colorir_valores(val):
+    """Destaca PROBLEMA e OUTLIER em cores claras"""
+    if val == "PROBLEMA":
+        color = 'background-color: #ffeb99'  # amarelo claro
+    elif val == "OUTLIER":
+        color = 'background-color: #ffcccc'  # vermelho clarinho
+    else:
+        color = ''
+    return color
+
 # ----------------------------
 # Upload do arquivo
 # ----------------------------
@@ -126,9 +135,12 @@ if uploaded_file is not None:
     st.success("Processamento concluído!")
 
     # ----------------------------
-    # Exibição da tabela
+    # Exibição da tabela com cores
     # ----------------------------
-    st.dataframe(df, use_container_width=True)
+    st.dataframe(
+        df.style.applymap(colorir_valores, subset=["ValidacaoContenido", "ValidacionPrecio"]),
+        use_container_width=True
+    )
 
     # ----------------------------
     # Download
