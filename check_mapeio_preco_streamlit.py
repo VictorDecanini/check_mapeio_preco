@@ -14,6 +14,11 @@ st.set_page_config(
 
 st.markdown("<h1 style='text-align: center;'>Validador de Mapeio e Preços</h1>", unsafe_allow_html=True)
 st.markdown("""
+Para o funcionamento correto da ferramente, são necessárias as colunas exatamente com esses nomes:
+- `Descripcion`
+- `Contenido`
+- `Precio por unidad`
+- `Est Mer 7 (Subcategoria)`
 Esta ferramenta permite:
 - Validar a quantidade de embalagem (`QtdEmbalagem` e `QtdEmbalagemGramas`)
 - Validar o conteúdo (`ValidacaoContenido`)
@@ -93,7 +98,7 @@ def to_excel(df):
 
 def colorir_valores(val):
     """Destaca PROBLEMA e OUTLIER em cores claras"""
-    if val == "PROBLEMA":
+    if val == "PROBLEMA MAPEIO":
         color = 'background-color: #ffeb99'  # amarelo claro
     elif val == "OUTLIER":
         color = 'background-color: #ffcccc'  # vermelho clarinho
@@ -126,7 +131,7 @@ if uploaded_file is not None:
         lambda row: "OK" if pd.notna(row["QtdEmbalagemGramas"]) 
                               and pd.notna(row[coluna_contenido]) 
                               and int(row["QtdEmbalagemGramas"]) == int(row[coluna_contenido]) 
-                    else "PROBLEMA",
+                    else "PROBLEMA MAPEIO",
         axis=1
     )
 
