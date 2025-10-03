@@ -94,8 +94,8 @@ def extrair_peso(texto):
 
 def validar_precio_por_categoria(df, coluna_preco, coluna_categoria):
     def marcar_outliers(grupo):
-        limite_inferior = grupo.quantile(0.10)
-        limite_superior = grupo.quantile(0.90)
+        limite_inferior = grupo.quantile(0.05)
+        limite_superior = grupo.quantile(0.95)
         # iqr = q3 - q1
         # limite_inferior = q1 - 1.5 * iqr
         # limite_superior = q3 + 1.5 * iqr
