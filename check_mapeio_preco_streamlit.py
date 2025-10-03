@@ -17,7 +17,7 @@ st.markdown("""
 Para o funcionamento correto da ferramente, são necessárias as colunas exatamente com esses nomes:
 - `Descripcion`
 - `Contenido`
-- `Precio por unidad`
+- `Precio KG/LT`
 - `Est Mer 7 (Subcategoria)`
 
 Esta ferramenta permite:
@@ -99,7 +99,7 @@ def to_excel(df):
 
 def colorir_valores(val):
     """Destaca PROBLEMA e OUTLIER em cores claras"""
-    if val == "PROBLEMA MAPEIO":
+    if val == "PROBLEMA":
         color = 'background-color: #ffeb99'  # amarelo claro
     elif val == "OUTLIER":
         color = 'background-color: #ffcccc'  # vermelho clarinho
@@ -118,7 +118,7 @@ if uploaded_file is not None:
     # Ajuste das colunas utilizadas
     coluna_descricao = "Descripcion"
     coluna_contenido = "Contenido"
-    coluna_preco = "Precio por unidad"
+    coluna_preco = "Precio KG/LT"
     coluna_categoria = "Est Mer 7 (Subcategoria)"
 
     # ----------------------------
@@ -132,7 +132,7 @@ if uploaded_file is not None:
         lambda row: "OK" if pd.notna(row["QtdEmbalagemGramas"]) 
                               and pd.notna(row[coluna_contenido]) 
                               and int(row["QtdEmbalagemGramas"]) == int(row[coluna_contenido]) 
-                    else "PROBLEMA MAPEIO",
+                    else "PROBLEMA",
         axis=1
     )
 
