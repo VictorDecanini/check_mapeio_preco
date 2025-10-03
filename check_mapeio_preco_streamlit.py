@@ -14,7 +14,7 @@ st.set_page_config(
 
 st.markdown("<h1 style='text-align: center;'>Validador de Mapeio e Preços</h1>", unsafe_allow_html=True)
 st.markdown("""
-Para o funcionamento correto da ferramente, são necessárias as colunas exatamente com esses nomes:
+Para o funcionamento correto da ferramenta, são necessárias as colunas exatamente com esses nomes:
 - `Descripcion`
 - `Contenido`
 - `Precio KG/LT`
@@ -82,8 +82,8 @@ def extrair_peso(texto):
 
 def validar_precio_por_categoria(df, coluna_preco, coluna_categoria):
     def marcar_outliers(grupo):
-        q1 = grupo[coluna_preco].quantile(0.15)
-        q3 = grupo[coluna_preco].quantile(0.85)
+        q1 = grupo[coluna_preco].quantile(0.25)
+        q3 = grupo[coluna_preco].quantile(0.75)
         iqr = q3 - q1
         limite_inferior = q1 - 1.5 * iqr
         limite_superior = q3 + 1.5 * iqr
@@ -114,6 +114,7 @@ uploaded_file = st.file_uploader("Escolha o arquivo Excel", type=["xlsx"])
 if uploaded_file is not None:
     st.info("Processando arquivo...")
     df = pd.read_excel(uploaded_file)
+    df = df['Imp Vta (Ult.24 Meses)'] > 0
 
     # Ajuste das colunas utilizadas
     coluna_descricao = "Descripcion"
