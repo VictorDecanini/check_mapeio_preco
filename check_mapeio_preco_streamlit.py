@@ -90,7 +90,7 @@ def validar_precio_por_categoria(df, coluna_preco, coluna_categoria):
         return grupo[coluna_preco].apply(
             lambda x: "OK" if limite_inferior <= x <= limite_superior else "OUTLIER"
         )
-    return df.groupby(coluna_categoria, group_keys=False).apply(marcar_outliers).reset_index(level=0, drop=True)
+    return df.groupby(coluna_categoria, group_keys=False).apply(marcar_outliers).reset_index(drop=True)
 
 def to_excel(df):
     output = BytesIO()
