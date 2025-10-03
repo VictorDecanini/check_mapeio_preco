@@ -114,7 +114,7 @@ uploaded_file = st.file_uploader("Escolha o arquivo Excel", type=["xlsx"])
 if uploaded_file is not None:
     st.info("Processando arquivo...")
     df = pd.read_excel(uploaded_file, header = 0)
-    df = df['Imp Vta (Ult.24 Meses)'] > 0
+    df = df[df['Imp Vta (Ult.24 Meses)'] > 0]
 
     # Ajuste das colunas utilizadas
     coluna_descricao = "Descripcion"
