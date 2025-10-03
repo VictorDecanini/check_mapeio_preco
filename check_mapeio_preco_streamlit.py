@@ -19,6 +19,7 @@ Para o funcionamento correto da ferramente, são necessárias as colunas exatame
 - `Contenido`
 - `Precio por unidad`
 - `Est Mer 7 (Subcategoria)`
+
 Esta ferramenta permite:
 - Validar a quantidade de embalagem (`QtdEmbalagem` e `QtdEmbalagemGramas`)
 - Validar o conteúdo (`ValidacaoContenido`)
