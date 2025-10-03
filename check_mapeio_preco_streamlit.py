@@ -80,17 +80,28 @@ def extrair_peso(texto):
 
     return None, None
 
+# def validar_precio_por_categoria(df, coluna_preco, coluna_categoria):
+#     def marcar_outliers(grupo):
+#         q1 = grupo[coluna_preco].quantile(0.25)
+#         q3 = grupo[coluna_preco].quantile(0.75)
+#         iqr = q3 - q1
+#         limite_inferior = q1 - 1.5 * iqr
+#         limite_superior = q3 + 1.5 * iqr
+#         return grupo[coluna_preco].apply(
+#             lambda x: "OK" if limite_inferior <= x <= limite_superior else "OUTLIER"
+#         )
+#     # return df.groupby(coluna_categoria, group_keys=False).apply(marcar_outliers).reset_index(drop=True)
+
 def validar_precio_por_categoria(df, coluna_preco, coluna_categoria):
     def marcar_outliers(grupo):
-        q1 = grupo[coluna_preco].quantile(0.25)
-        q3 = grupo[coluna_preco].quantile(0.75)
+        q1 = grupo.quantile(0.25)
+        q3 = grupo.quantile(0.75)
         iqr = q3 - q1
         limite_inferior = q1 - 1.5 * iqr
         limite_superior = q3 + 1.5 * iqr
-        return grupo[coluna_preco].apply(
-            lambda x: "OK" if limite_inferior <= x <= limite_superior else "OUTLIER"
-        )
-    return df.groupby(coluna_categoria, group_keys=False).apply(marcar_outliers).reset_index(drop=True)
+        return grupo.apply(lambda x: "OK" if limite_inferior <= x <= limite_superior else "OUTLIER")
+
+    return df.groupby(coluna_categoria)[coluna_preco].transform(marcar_outliers)
 
 def to_excel(df):
     output = BytesIO()
