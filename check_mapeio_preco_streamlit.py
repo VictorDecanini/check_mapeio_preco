@@ -122,9 +122,71 @@ def validar_precio_mediana(df, coluna_preco, coluna_categoria):
 # ----------------------------
 # Exportar para Excel
 # ----------------------------
-def to_excel(df):
+def to_excel_com_resumo(df, coluna_vendas):
+    from io import BytesIO
     output = BytesIO()
-    df.to_excel(output, index=False)
+
+    # ----------------------------
+    # Criar resumo
+    # ----------------------------
+    total_itens = len(df)
+    problemas_contenido = (df["ValidacaoContenido"] == "PROBLEMA").sum()
+    outliers_quartil = (df["ValidacionPrecio"] == "OUTLIER").sum()
+    outliers_mediana = (df["ValidacionPrecioMediana"] == "OUTLIER_MEDIANA").sum()
+
+    outliers_ambos = ((df["ValidacionPrecio"] == "OUTLIER") & 
+                      (df["ValidacionPrecioMediana"] == "OUTLIER_MEDIANA")).sum()
+    outliers_somente_mediana = ((df["ValidacionPrecio"] != "OUTLIER") & 
+                                (df["ValidacionPrecioMediana"] == "OUTLIER_MEDIANA")).sum()
+    outliers_somente_quartil = ((df["ValidacionPrecio"] == "OUTLIER") & 
+                                (df["ValidacionPrecioMediana"] != "OUTLIER_MEDIANA")).sum()
+
+    problemas_valor_bruto = problemas_contenido + outliers_ambos + outliers_somente_mediana + outliers_somente_quartil
+    problemas_valor_perc = problemas_valor_bruto / total_itens * 100 if total_itens else 0
+
+    volume_total = df[coluna_vendas].sum()
+    df_problemas = df[
+        (df["ValidacaoContenido"] == "PROBLEMA") |
+        (df["ValidacionPrecio"] == "OUTLIER") |
+        (df["ValidacionPrecioMediana"] == "OUTLIER_MEDIANA")
+    ]
+    volume_problemas = df_problemas[coluna_vendas].sum()
+    volume_problemas_perc = volume_problemas / volume_total * 100 if volume_total else 0
+
+    df_resumo = pd.DataFrame({
+        "Métrica": [
+            "Qtd total de SKUs/Itens",
+            "Qtd de problemas de contenido",
+            "Qtd de outliers em ambos (mediana e quartil)",
+            "Qtd de outliers apenas mediana",
+            "Qtd de outliers apenas quartil",
+            "Qtd total de SKUs/itens com problema (valor bruto)",
+            "Qtd total de SKUs/itens com problema (%)",
+            "Volume de vendas total",
+            "Volume de vendas com problema (valor bruto)",
+            "Volume de vendas com problema (%)"
+        ],
+        "Valor": [
+            total_itens,
+            problemas_contenido,
+            outliers_ambos,
+            outliers_somente_mediana,
+            outliers_somente_quartil,
+            problemas_valor_bruto,
+            round(problemas_valor_perc, 2),
+            volume_total,
+            volume_problemas,
+            round(volume_problemas_perc, 2)
+        ]
+    })
+
+    # ----------------------------
+    # Criar Excel com duas abas
+    # ----------------------------
+    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+        df.to_excel(writer, index=False, sheet_name="Detalhes")
+        df_resumo.to_excel(writer, index=False, sheet_name="Resumo")
+
     return output.getvalue()
 
 # ----------------------------
@@ -254,12 +316,65 @@ if uploaded_file is not None:
         use_container_width=True
     )
 
-    # ----------------------------
-    # Download
-    # ----------------------------
+###########################################################################
+### FUNÇÃO PARA GERAR ABA NO EXCEL COM RESUMO DOS PROBLEMAS ENCONTRADOS ###
+###########################################################################
+    def gerar_resumo(df, coluna_vendas="vendas", col_validacao_contenido="ValidacaoContenido",
+                 col_outlier_quartil="ValidacionPrecio", col_outlier_mediana="ValidacionPrecioMediana"):
+        
+        # Cria um DataFrame resumo com métricas consolidadas:
+        # - Quantidade de SKUs/itens
+        # - Problemas de conteúdo
+        # - Outliers em comum e exclusivos
+        # - Totais e % de problemas em valor e volume
+
+        resumo = {}
+
+        # Total de SKUs/itens
+        resumo["Qtd Total SKUs/Itens"] = len(df)
+
+        # Problemas de conteúdo
+        resumo["Qtd Problemas Conteúdo"] = (df[col_validacao_contenido] == "PROBLEMA").sum()
+
+        # Outliers
+        outlier_quartil = df[col_outlier_quartil] == "OUTLIER"
+        outlier_mediana = df[col_outlier_mediana] == "OUTLIER_MEDIANA"
+
+        resumo["Qtd Outliers em comum (Quartil e Mediana)"] = (outlier_quartil & outlier_mediana).sum()
+        resumo["Qtd Outliers apenas Mediana"] = (outlier_mediana & ~outlier_quartil).sum()
+        resumo["Qtd Outliers apenas Quartil"] = (outlier_quartil & ~outlier_mediana).sum()
+
+        # Totais e %
+        resumo["Qtd Total SKUs com problema (conteúdo ou preço)"] = (
+            (df[col_validacao_contenido] == "PROBLEMA") | outlier_quartil | outlier_mediana
+        ).sum()
+        resumo["% SKUs com problema"] = resumo["Qtd Total SKUs com problema (conteúdo ou preço)"] / len(df) * 100
+
+        # Volume de vendas
+        if coluna_vendas in df.columns:
+            resumo["Volume Total Vendas"] = df[coluna_vendas].sum()
+            resumo["Volume Vendas com problema"] = df.loc[
+                (df[col_validacao_contenido] == "PROBLEMA") | outlier_quartil | outlier_mediana,
+                coluna_vendas
+            ].sum()
+            resumo["% Volume Vendas com problema"] = resumo["Volume Vendas com problema"] / resumo["Volume Total Vendas"] * 100
+        else:
+            resumo["Volume Total Vendas"] = np.nan
+            resumo["Volume Vendas com problema"] = np.nan
+            resumo["% Volume Vendas com problema"] = np.nan
+
+        # Retorna como DataFrame (uma linha)
+        return pd.DataFrame([resumo])
+
+
+
+    # Após processar o DataFrame df
+    df_resumo = gerar_resumo(df, coluna_vendas=coluna_vendas)
+
     st.download_button(
-        label="📥 Baixar Excel Processado",
-        data=to_excel(df),
-        file_name="dados_processados.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    label="📥 Baixar Excel Processado com Resumo",
+    data=to_excel_com_resumo(df, coluna_vendas),
+    file_name="dados_processados.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
