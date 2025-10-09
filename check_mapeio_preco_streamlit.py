@@ -207,8 +207,9 @@ if uploaded_file is not None:
     df[coluna_vendas] = (
         df[coluna_vendas]
         .astype(str)
-        .str.replace(r"[^\d,.-]", "", regex=True)  # remove símbolos e letras
-        .str.replace(",", ".", regex=False)        # vírgula → ponto
+        .str.replace(r"[^\d,.-]", "", regex=True)  # remove símbolos estranhos
+        .str.replace(".", "", regex=False)         # remove separador de milhar
+        .str.replace(",", ".", regex=False)        # converte vírgula decimal em ponto
     )
     df[coluna_vendas] = pd.to_numeric(df[coluna_vendas], errors="coerce")
 
