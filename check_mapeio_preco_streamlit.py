@@ -136,7 +136,7 @@ def to_excel_com_resumo(df, coluna_vendas):
     outliers_mediana = (df["ValidacionPrecioMediana"] == "OUTLIER_MEDIANA").sum()
 
     outliers_ambos = ((df["ValidacionPrecio"] == "OUTLIER") & 
-                      (df["ValidacionContenido"] != "PROBLEMA") & 
+                      (df["ValidacaoContenido"] != "PROBLEMA") & 
                       (df["ValidacionPrecioMediana"] == "OUTLIER_MEDIANA")).sum()
     outliers_somente_mediana = ((df["ValidacionPrecio"] != "OUTLIER") & 
                                 (df["ValidacionPrecioMediana"] == "OUTLIER_MEDIANA")).sum()
