@@ -204,7 +204,14 @@ if uploaded_file is not None:
     # ----------------------------
     # Conversão da coluna de vendas para numérico e filtragem
     # ----------------------------
+    df[coluna_vendas] = (
+        df[coluna_vendas]
+        .astype(str)
+        .str.replace(r"[^\d,.-]", "", regex=True)  # remove símbolos e letras
+        .str.replace(",", ".", regex=False)        # vírgula → ponto
+    )
     df[coluna_vendas] = pd.to_numeric(df[coluna_vendas], errors="coerce")
+
     df = df[df[coluna_vendas] > 0]
 
     # ----------------------------
