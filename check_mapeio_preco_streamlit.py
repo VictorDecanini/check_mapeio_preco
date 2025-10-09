@@ -131,6 +131,7 @@ if uploaded_file is not None:
         df = pd.read_csv(uploaded_file, encoding="utf-8", sep=None, engine="python")
     else:
         df = pd.read_excel(uploaded_file, header=0)
+        print(df.columns)
 
     # Garante consistência nos nomes das colunas (remove espaços extras, etc.)
     df.columns = df.columns.str.strip()
