@@ -3,6 +3,7 @@ import pandas as pd
 import re
 import numpy as np
 from io import BytesIO
+import xlsxwriter
 
 # ----------------------------
 # Configurações do app
