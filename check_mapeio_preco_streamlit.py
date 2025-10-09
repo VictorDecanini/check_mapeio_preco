@@ -19,6 +19,7 @@ Para o funcionamento correto da ferramenta, são necessárias colunas que **tenh
 - `Contenido`, `Qtd Conteúdo SKU`
 - `Precio KG/LT`, `Preço convertido kg/lt R$`, `Preço kg/lt`
 - `Est Mer 7 (Subcategoria)`, `NIVEL1`
+- `Imp Vta (Ult.24 Meses)`, `Vendas em volume`
 
 A ferramenta faz:
 - Validação da quantidade de embalagem (`QtdEmbalagem` e `QtdEmbalagemGramas`)
@@ -163,16 +164,27 @@ if uploaded_file is not None:
     # Filtros e processamento
     # ----------------------------
     if coluna_vendas in df.columns:
+        # Converte para número de forma segura (erros viram NaN)
+        df[coluna_vendas] = pd.to_numeric(df[coluna_vendas], errors="coerce")
         df = df[df[coluna_vendas] > 0]
 
     df[["QtdEmbalagem", "QtdEmbalagemGramas"]] = df[coluna_descricao].apply(
         lambda x: pd.Series(extrair_peso(x))
     )
 
+    def comparar_contenido(qtd_embalagem_gramas, contenido):
+        try:
+            if pd.isna(qtd_embalagem_gramas) or pd.isna(contenido):
+                return "PROBLEMA"
+
+            # Converte conteúdo para número (float) independentemente do tipo original
+            contenido_val = float(str(contenido).replace(",", "."))
+            return "OK" if abs(qtd_embalagem_gramas - contenido_val) < 1 else "PROBLEMA"
+        except Exception:
+            return "PROBLEMA"
+
     df["ValidacaoContenido"] = df.apply(
-        lambda row: "OK" if pd.notna(row["QtdEmbalagemGramas"]) and pd.notna(row[coluna_contenido])
-        and int(row["QtdEmbalagemGramas"]) == int(row[coluna_contenido])
-        else "PROBLEMA",
+        lambda row: comparar_contenido(row["QtdEmbalagemGramas"], row[coluna_contenido]),
         axis=1
     )
 
