@@ -136,6 +136,7 @@ def to_excel_com_resumo(df, coluna_vendas):
     outliers_mediana = (df["ValidacionPrecioMediana"] == "OUTLIER_MEDIANA").sum()
 
     outliers_ambos = ((df["ValidacionPrecio"] == "OUTLIER") & 
+                      (df["ValidacionContenido"] != "PROBLEMA") & 
                       (df["ValidacionPrecioMediana"] == "OUTLIER_MEDIANA")).sum()
     outliers_somente_mediana = ((df["ValidacionPrecio"] != "OUTLIER") & 
                                 (df["ValidacionPrecioMediana"] == "OUTLIER_MEDIANA")).sum()
@@ -347,7 +348,7 @@ if uploaded_file is not None:
 
         # Totais e %
         resumo["Qtd Total SKUs com problema (conteúdo ou preço)"] = (
-            (df[col_validacao_contenido] == "PROBLEMA") | outlier_quartil | outlier_mediana
+            (df[col_validacao_contenido] != "PROBLEMA") | outlier_quartil | outlier_mediana
         ).sum()
         resumo["% SKUs com problema"] = resumo["Qtd Total SKUs com problema (conteúdo ou preço)"] / len(df) * 100
 
