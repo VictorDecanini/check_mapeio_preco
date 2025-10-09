@@ -83,16 +83,6 @@ def extrair_peso(texto):
     return None, None
 
 # ----------------------------
-# Detectar nome flexível das colunas
-# ----------------------------
-def encontrar_coluna(df, opcoes):
-    for opcao in opcoes:
-        for col in df.columns:
-            if opcao.lower() in col.lower():
-                return col
-    return None
-
-# ----------------------------
 # Validador de preço por categoria (IQR 5-95%)
 # ----------------------------
 def validar_precio_por_categoria(df, coluna_preco, coluna_categoria):
@@ -139,35 +129,71 @@ uploaded_file = st.file_uploader("Escolha o arquivo Excel ou CSV", type=["xlsx",
 if uploaded_file is not None:
     st.info("Processando arquivo...")
 
-    # Detecta tipo de arquivo
+    # ----------------------------
+    # Leitura do arquivo
+    # ----------------------------
     if uploaded_file.name.endswith(".csv"):
         df = pd.read_csv(uploaded_file, encoding="utf-8", sep=None, engine="python")
     else:
         df = pd.read_excel(uploaded_file, header=0)
 
-    df.columns = df.columns.str.strip()
+    # ----------------------------
+    # Normalização de nomes de colunas
+    # ----------------------------
+    df.columns = df.columns.str.strip().str.lower()
 
     # ----------------------------
-    # Identifica colunas de forma flexível
+    # Mapeamento flexível de colunas
     # ----------------------------
-    coluna_vendas = encontrar_coluna(df, ["Imp Vta (Ult.24 Meses)", "Vendas em volume"])
-    coluna_descricao = encontrar_coluna(df, ["Descripcion", "PROD_NOMBRE_ORIGINAL", "Nome SKU"])
-    coluna_contenido = encontrar_coluna(df, ["Contenido", "Qtd Conteúdo SKU"])
-    coluna_preco = encontrar_coluna(df, ["Precio KG/LT", "Preço convertido kg/lt R$", "Preço kg/lt"])
-    coluna_categoria = encontrar_coluna(df, ["Est Mer 7 (Subcategoria)", "NIVEL1"])
+    mapa_colunas = {
+        "descricao": ["descripcion", "prod_nombre_original", "nome sku"],
+        "contenido": ["contenido", "qtd conteúdo sku"],
+        "preco": ["precio kg/lt", "preço convertido kg/lt r$", "preço kg/lt"],
+        "categoria": ["est mer 7 (subcategoria)", "nivel1"],
+        "vendas": ["imp vta (ult.24 meses)", "vendas em volume"]
+    }
 
-    if not all([coluna_descricao, coluna_contenido, coluna_preco, coluna_categoria]):
-        st.error("Não foi possível identificar todas as colunas necessárias. Verifique os nomes.")
+    def encontrar_coluna(possiveis):
+        for nome in possiveis:
+            if nome in df.columns:
+                return nome
+        return None
+
+    coluna_descricao = encontrar_coluna(mapa_colunas["descricao"])
+    coluna_contenido = encontrar_coluna(mapa_colunas["contenido"])
+    coluna_preco = encontrar_coluna(mapa_colunas["preco"])
+    coluna_categoria = encontrar_coluna(mapa_colunas["categoria"])
+    coluna_vendas = encontrar_coluna(mapa_colunas["vendas"])
+
+    # ----------------------------
+    # Validação de colunas obrigatórias
+    # ----------------------------
+    colunas_necessarias = {
+        "Descrição": coluna_descricao,
+        "Conteúdo": coluna_contenido,
+        "Preço": coluna_preco,
+        "Categoria": coluna_categoria,
+        "Vendas": coluna_vendas
+    }
+
+    colunas_faltando = [nome for nome, valor in colunas_necessarias.items() if valor is None]
+
+    if colunas_faltando:
+        st.error(
+            f"❌ Não foi possível identificar as seguintes colunas no arquivo: "
+            f"{', '.join(colunas_faltando)}"
+        )
         st.stop()
 
     # ----------------------------
-    # Filtros e processamento
+    # Conversão da coluna de vendas para numérico e filtragem
     # ----------------------------
-    if coluna_vendas in df.columns:
-        # Converte para número de forma segura (erros viram NaN)
-        df[coluna_vendas] = pd.to_numeric(df[coluna_vendas], errors="coerce")
-        df = df[df[coluna_vendas] > 0]
+    df[coluna_vendas] = pd.to_numeric(df[coluna_vendas], errors="coerce")
+    df = df[df[coluna_vendas] > 0]
 
+    # ----------------------------
+    # Processamento principal
+    # ----------------------------
     df[["QtdEmbalagem", "QtdEmbalagemGramas"]] = df[coluna_descricao].apply(
         lambda x: pd.Series(extrair_peso(x))
     )
@@ -177,7 +203,6 @@ if uploaded_file is not None:
             if pd.isna(qtd_embalagem_gramas) or pd.isna(contenido):
                 return "PROBLEMA"
 
-            # Converte conteúdo para número (float) independentemente do tipo original
             contenido_val = float(str(contenido).replace(",", "."))
             return "OK" if abs(qtd_embalagem_gramas - contenido_val) < 1 else "PROBLEMA"
         except Exception:
@@ -188,10 +213,14 @@ if uploaded_file is not None:
         axis=1
     )
 
+    # ----------------------------
+    # Validações de preço
+    # ----------------------------
     df["ValidacionPrecio"] = validar_precio_por_categoria(df, coluna_preco, coluna_categoria)
     df["ValidacionPrecioMediana"] = validar_precio_mediana(df, coluna_preco, coluna_categoria)
 
-    st.success("✅ Processamento concluído!")
+    st.success("✅ Processamento concluído com sucesso!")
+
 
     # ----------------------------
     # Exibição
