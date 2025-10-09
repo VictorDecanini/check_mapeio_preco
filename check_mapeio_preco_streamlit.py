@@ -135,11 +135,11 @@ if uploaded_file is not None:
     # Garante consistência nos nomes das colunas (remove espaços extras, etc.)
     df.columns = df.columns.str.strip()
 
-    # # Filtra conforme sua regra original
-    # if "Imp Vta (Ult.24 Meses)" in df.columns:
-    #     df = df[df["Imp Vta (Ult.24 Meses)"] > 0]
-    # else:
-    #     st.warning("Coluna 'Imp Vta (Ult.24 Meses)' não encontrada no arquivo.")
+    # Filtra conforme sua regra original
+    if "Imp Vta (Ult.24 Meses)" in df.columns:
+        df = df[df["Imp Vta (Ult.24 Meses)"] > 0]
+    else:
+        st.warning("Coluna 'Imp Vta (Ult.24 Meses)' não encontrada no arquivo.")
 
     # Ajuste das colunas utilizadas
     coluna_descricao = "Descripcion"
