@@ -3,7 +3,6 @@ import pandas as pd
 import re
 import numpy as np
 from io import BytesIO
-import xlsxwriter
 
 # ----------------------------
 # Configurações do app
@@ -144,7 +143,7 @@ def to_excel_com_resumo(df, coluna_vendas):
                                 (df["ValidacionPrecioMediana"] != "OUTLIER_MEDIANA")).sum()
 
     problemas_valor_bruto = problemas_contenido + outliers_ambos + outliers_somente_mediana + outliers_somente_quartil
-    problemas_valor_perc = problemas_valor_bruto / total_itens * 100 if total_itens else 0
+    problemas_valor_perc = (problemas_valor_bruto / total_itens * 100).round(1).astype(str) + "%" if total_itens else 0
 
     volume_total = df[coluna_vendas].sum()
     df_problemas = df[
@@ -153,7 +152,7 @@ def to_excel_com_resumo(df, coluna_vendas):
         (df["ValidacionPrecioMediana"] == "OUTLIER_MEDIANA")
     ]
     volume_problemas = df_problemas[coluna_vendas].sum()
-    volume_problemas_perc = volume_problemas / volume_total * 100 if volume_total else 0
+    volume_problemas_perc = (volume_problemas / volume_total * 100).round(1).astype(str) + "%" if volume_total else 0
 
     df_resumo = pd.DataFrame({
         "Métrica": [
@@ -350,7 +349,7 @@ if uploaded_file is not None:
         resumo["Qtd Total SKUs com problema (conteúdo ou preço)"] = (
             (df[col_validacao_contenido] != "PROBLEMA") | outlier_quartil | outlier_mediana
         ).sum()
-        resumo["% SKUs com problema"] = (resumo["Qtd Total SKUs com problema (conteúdo ou preço)"] / len(df) * 100).round(1).astype(str) + "%"
+        resumo["% SKUs com problema"] = resumo["Qtd Total SKUs com problema (conteúdo ou preço)"] / len(df) * 100
 
         # Volume de vendas
         if coluna_vendas in df.columns:
@@ -359,7 +358,7 @@ if uploaded_file is not None:
                 (df[col_validacao_contenido] == "PROBLEMA") | outlier_quartil | outlier_mediana,
                 coluna_vendas
             ].sum()
-            resumo["% Volume Vendas com problema"] = (resumo["Volume Vendas com problema"] / resumo["Volume Total Vendas"] * 100).round(1).astype(str) + "%"
+            resumo["% Volume Vendas com problema"] = resumo["Volume Vendas com problema"] / resumo["Volume Total Vendas"] * 100
         else:
             resumo["Volume Total Vendas"] = np.nan
             resumo["Volume Vendas com problema"] = np.nan
