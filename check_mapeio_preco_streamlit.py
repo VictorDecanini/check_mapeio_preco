@@ -86,6 +86,14 @@ def extrair_peso(texto):
 # Validador de preço por categoria (IQR 5-95%)
 # ----------------------------
 def validar_precio_por_categoria(df, coluna_preco, coluna_categoria):
+    df[coluna_preco] = (
+        df[coluna_preco]
+        .astype(str)                    # garante que é texto
+        .str.replace(r"[^\d,.-]", "", regex=True)  # remove "R$", espaços, etc.
+        .str.replace(",", ".", regex=False)        # troca vírgula por ponto
+        )
+    df[coluna_preco] = pd.to_numeric(df[coluna_preco], errors="coerce")
+
     def marcar_outliers(grupo):
         limite_inferior = grupo.quantile(0.05)
         limite_superior = grupo.quantile(0.95)
@@ -96,6 +104,14 @@ def validar_precio_por_categoria(df, coluna_preco, coluna_categoria):
 # Novo validador: outliers com base na mediana (3x acima ou 1/3 abaixo)
 # ----------------------------
 def validar_precio_mediana(df, coluna_preco, coluna_categoria):
+    df[coluna_preco] = (
+        df[coluna_preco]
+        .astype(str)                    # garante que é texto
+        .str.replace(r"[^\d,.-]", "", regex=True)  # remove "R$", espaços, etc.
+        .str.replace(",", ".", regex=False)        # troca vírgula por ponto
+    )
+    df[coluna_preco] = pd.to_numeric(df[coluna_preco], errors="coerce")
+
     def marcar_por_mediana(grupo):
         mediana = grupo.median()
         limite_inferior = mediana / 3
