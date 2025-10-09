@@ -3,7 +3,6 @@ import pandas as pd
 import re
 import numpy as np
 from io import BytesIO
-
 # ----------------------------
 # Configurações do app
 # ----------------------------
@@ -143,7 +142,7 @@ def to_excel_com_resumo(df, coluna_vendas):
                                 (df["ValidacionPrecioMediana"] != "OUTLIER_MEDIANA")).sum()
 
     problemas_valor_bruto = problemas_contenido + outliers_ambos + outliers_somente_mediana + outliers_somente_quartil
-    problemas_valor_perc = (problemas_valor_bruto / total_itens * 100).round(1).astype(str) + "%" if total_itens else 0
+    problemas_valor_perc = problemas_valor_bruto / total_itens * 100 if total_itens else 0
 
     volume_total = df[coluna_vendas].sum()
     df_problemas = df[
@@ -152,7 +151,7 @@ def to_excel_com_resumo(df, coluna_vendas):
         (df["ValidacionPrecioMediana"] == "OUTLIER_MEDIANA")
     ]
     volume_problemas = df_problemas[coluna_vendas].sum()
-    volume_problemas_perc = (volume_problemas / volume_total * 100).round(1).astype(str) + "%" if volume_total else 0
+    volume_problemas_perc = volume_problemas / volume_total * 100 if volume_total else 0
 
     df_resumo = pd.DataFrame({
         "Métrica": [
@@ -185,8 +184,23 @@ def to_excel_com_resumo(df, coluna_vendas):
     # Criar Excel com duas abas
     # ----------------------------
     with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-        df.to_excel(writer, index=False, sheet_name="Detalhes")
+        # Aba com dados detalhados
+        df.to_excel(writer, index=False, sheet_name="Dados")
+        
+        # Aba resumo
         df_resumo.to_excel(writer, index=False, sheet_name="Resumo")
+        
+        # Formatação
+        workbook  = writer.book
+        worksheet = writer.sheets["Resumo"]
+        
+        # Formato de porcentagem
+        percent_fmt = workbook.add_format({'num_format': '0.00%'})
+        
+        # Aplica formato de % apenas nas linhas correspondentes
+        # df_resumo é 0-indexed: linha 7 → B8, linha 10 → B11
+        worksheet.write_number(7, 1, df_resumo.loc[7, "Valor"] / 100, percent_fmt)
+        worksheet.write_number(10, 1, df_resumo.loc[10, "Valor"] / 100, percent_fmt)
 
     return output.getvalue()
 
