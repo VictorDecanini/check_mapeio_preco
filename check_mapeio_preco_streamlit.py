@@ -199,8 +199,8 @@ def to_excel_com_resumo(df, coluna_vendas):
         
         # Aplica formato de % apenas nas linhas correspondentes
         # df_resumo é 0-indexed: linha 6 → B8, linha 9 → B11
-        worksheet.write_number(6, 1, df_resumo.loc[6, "Valor"] / 100, percent_fmt)
-        worksheet.write_number(9, 1, df_resumo.loc[9, "Valor"] / 100, percent_fmt)
+        worksheet.write_number(7, 1, df_resumo.loc[6, "Valor"] / 100, percent_fmt)
+        worksheet.write_number(10, 1, df_resumo.loc[9, "Valor"] / 100, percent_fmt)
 
     return output.getvalue()
 
