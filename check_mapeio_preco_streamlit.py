@@ -350,7 +350,7 @@ if uploaded_file is not None:
         resumo["Qtd Total SKUs com problema (conteúdo ou preço)"] = (
             (df[col_validacao_contenido] != "PROBLEMA") | outlier_quartil | outlier_mediana
         ).sum()
-        resumo["% SKUs com problema"] = resumo["Qtd Total SKUs com problema (conteúdo ou preço)"] / len(df) * 100
+        resumo["% SKUs com problema"] = (resumo["Qtd Total SKUs com problema (conteúdo ou preço)"] / len(df) * 100).round(1).astype(str) + "%"
 
         # Volume de vendas
         if coluna_vendas in df.columns:
@@ -359,7 +359,7 @@ if uploaded_file is not None:
                 (df[col_validacao_contenido] == "PROBLEMA") | outlier_quartil | outlier_mediana,
                 coluna_vendas
             ].sum()
-            resumo["% Volume Vendas com problema"] = resumo["Volume Vendas com problema"] / resumo["Volume Total Vendas"] * 100
+            resumo["% Volume Vendas com problema"] = (resumo["Volume Vendas com problema"] / resumo["Volume Total Vendas"] * 100).round(1).astype(str) + "%"
         else:
             resumo["Volume Total Vendas"] = np.nan
             resumo["Volume Vendas com problema"] = np.nan
