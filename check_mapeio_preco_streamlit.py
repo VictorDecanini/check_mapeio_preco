@@ -14,17 +14,18 @@ st.set_page_config(
 
 st.markdown("<h1 style='text-align: center;'>Validador de Mapeio e Preços</h1>", unsafe_allow_html=True)
 st.markdown("""
-Para o funcionamento correto da ferramenta, são necessárias as colunas exatamente com esses nomes:
-- `Descripcion`
-- `Contenido`
-- `Precio KG/LT`
-- `Est Mer 7 (Subcategoria)`
+Para o funcionamento correto da ferramenta, são necessárias colunas que **tenham nomes semelhantes** aos seguintes:
+- `Descripcion`, `PROD_NOMBRE_ORIGINAL`, `Nome SKU`
+- `Contenido`, `Qtd Conteúdo SKU`
+- `Precio KG/LT`, `Preço convertido kg/lt R$`, `Preço kg/lt`
+- `Est Mer 7 (Subcategoria)`, `NIVEL1`
 
-Esta ferramenta permite:
-- Validar a quantidade de embalagem (`QtdEmbalagem` e `QtdEmbalagemGramas`)
-- Validar o conteúdo (`ValidacaoContenido`)
-- Detectar preços fora do padrão por subcategoria (`ValidacionPrecio`)
-- Baixar o Excel processado
+A ferramenta faz:
+- Validação da quantidade de embalagem (`QtdEmbalagem` e `QtdEmbalagemGramas`)
+- Validação de conteúdo (`ValidacaoContenido`)
+- Detecção de preços fora do padrão por subcategoria (`ValidacionPrecio`)
+- Detecção adicional de preços extremos baseados na mediana (`ValidacionPrecioMediana`)
+- Download do Excel processado
 """)
 
 # ----------------------------
@@ -80,43 +81,54 @@ def extrair_peso(texto):
 
     return None, None
 
-# def validar_precio_por_categoria(df, coluna_preco, coluna_categoria):
-#     def marcar_outliers(grupo):
-#         q1 = grupo[coluna_preco].quantile(0.25)
-#         q3 = grupo[coluna_preco].quantile(0.75)
-#         iqr = q3 - q1
-#         limite_inferior = q1 - 1.5 * iqr
-#         limite_superior = q3 + 1.5 * iqr
-#         return grupo[coluna_preco].apply(
-#             lambda x: "OK" if limite_inferior <= x <= limite_superior else "OUTLIER"
-#         )
-#     # return df.groupby(coluna_categoria, group_keys=False).apply(marcar_outliers).reset_index(drop=True)
+# ----------------------------
+# Detectar nome flexível das colunas
+# ----------------------------
+def encontrar_coluna(df, opcoes):
+    for opcao in opcoes:
+        for col in df.columns:
+            if opcao.lower() in col.lower():
+                return col
+    return None
 
+# ----------------------------
+# Validador de preço por categoria (IQR 5-95%)
+# ----------------------------
 def validar_precio_por_categoria(df, coluna_preco, coluna_categoria):
     def marcar_outliers(grupo):
         limite_inferior = grupo.quantile(0.05)
         limite_superior = grupo.quantile(0.95)
-        # iqr = q3 - q1
-        # limite_inferior = q1 - 1.5 * iqr
-        # limite_superior = q3 + 1.5 * iqr
         return grupo.apply(lambda x: "OK" if limite_inferior <= x <= limite_superior else "OUTLIER")
-
     return df.groupby(coluna_categoria)[coluna_preco].transform(marcar_outliers)
 
+# ----------------------------
+# Novo validador: outliers com base na mediana (3x acima ou 1/3 abaixo)
+# ----------------------------
+def validar_precio_mediana(df, coluna_preco, coluna_categoria):
+    def marcar_por_mediana(grupo):
+        mediana = grupo.median()
+        limite_inferior = mediana / 3
+        limite_superior = mediana * 3
+        return grupo.apply(lambda x: "OK" if limite_inferior <= x <= limite_superior else "OUTLIER_MEDIANA")
+    return df.groupby(coluna_categoria)[coluna_preco].transform(marcar_por_mediana)
+
+# ----------------------------
+# Exportar para Excel
+# ----------------------------
 def to_excel(df):
     output = BytesIO()
     df.to_excel(output, index=False)
     return output.getvalue()
 
+# ----------------------------
+# Colorir valores
+# ----------------------------
 def colorir_valores(val):
-    """Destaca PROBLEMA e OUTLIER em cores claras"""
     if val == "PROBLEMA":
-        color = 'background-color: #ffeb99'  # amarelo claro
-    elif val == "OUTLIER":
-        color = 'background-color: #ffcccc'  # vermelho clarinho
-    else:
-        color = ''
-    return color
+        return "background-color: #fff3cd"  # amarelo claro
+    elif val in ["OUTLIER", "OUTLIER_MEDIANA"]:
+        return "background-color: #f8d7da"  # vermelho claro
+    return ""
 
 # ----------------------------
 # Upload do arquivo
@@ -126,52 +138,54 @@ uploaded_file = st.file_uploader("Escolha o arquivo Excel ou CSV", type=["xlsx",
 if uploaded_file is not None:
     st.info("Processando arquivo...")
 
-    # Detecta automaticamente o tipo de arquivo pelo sufixo
+    # Detecta tipo de arquivo
     if uploaded_file.name.endswith(".csv"):
         df = pd.read_csv(uploaded_file, encoding="utf-8", sep=None, engine="python")
     else:
         df = pd.read_excel(uploaded_file, header=0)
-        print(df.columns)
 
-    # Garante consistência nos nomes das colunas (remove espaços extras, etc.)
     df.columns = df.columns.str.strip()
 
-    # Filtra conforme sua regra original
-    if "Imp Vta (Ult.24 Meses)" in df.columns:
-        df = df[df["Imp Vta (Ult.24 Meses)"] > 0]
-    else:
-        st.warning("Coluna 'Imp Vta (Ult.24 Meses)' não encontrada no arquivo.")
+    # ----------------------------
+    # Identifica colunas de forma flexível
+    # ----------------------------
+    coluna_vendas = encontrar_coluna(df, ["Imp Vta (Ult.24 Meses)", "Vendas em volume"])
+    coluna_descricao = encontrar_coluna(df, ["Descripcion", "PROD_NOMBRE_ORIGINAL", "Nome SKU"])
+    coluna_contenido = encontrar_coluna(df, ["Contenido", "Qtd Conteúdo SKU"])
+    coluna_preco = encontrar_coluna(df, ["Precio KG/LT", "Preço convertido kg/lt R$", "Preço kg/lt"])
+    coluna_categoria = encontrar_coluna(df, ["Est Mer 7 (Subcategoria)", "NIVEL1"])
 
-    # Ajuste das colunas utilizadas
-    coluna_descricao = "Descripcion"
-    coluna_contenido = "Contenido"
-    coluna_preco = "Precio KG/LT"
-    coluna_categoria = "Est Mer 7 (Subcategoria)"
+    if not all([coluna_descricao, coluna_contenido, coluna_preco, coluna_categoria]):
+        st.error("Não foi possível identificar todas as colunas necessárias. Verifique os nomes.")
+        st.stop()
 
     # ----------------------------
-    # Processamento
+    # Filtros e processamento
     # ----------------------------
+    if coluna_vendas in df.columns:
+        df = df[df[coluna_vendas] > 0]
+
     df[["QtdEmbalagem", "QtdEmbalagemGramas"]] = df[coluna_descricao].apply(
         lambda x: pd.Series(extrair_peso(x))
     )
 
     df["ValidacaoContenido"] = df.apply(
-        lambda row: "OK" if pd.notna(row["QtdEmbalagemGramas"]) 
-                              and pd.notna(row[coluna_contenido]) 
-                              and int(row["QtdEmbalagemGramas"]) == int(row[coluna_contenido]) 
-                    else "PROBLEMA",
+        lambda row: "OK" if pd.notna(row["QtdEmbalagemGramas"]) and pd.notna(row[coluna_contenido])
+        and int(row["QtdEmbalagemGramas"]) == int(row[coluna_contenido])
+        else "PROBLEMA",
         axis=1
     )
 
     df["ValidacionPrecio"] = validar_precio_por_categoria(df, coluna_preco, coluna_categoria)
+    df["ValidacionPrecioMediana"] = validar_precio_mediana(df, coluna_preco, coluna_categoria)
 
-    st.success("Processamento concluído!")
+    st.success("✅ Processamento concluído!")
 
     # ----------------------------
-    # Exibição da tabela com cores
+    # Exibição
     # ----------------------------
     st.dataframe(
-        df.style.applymap(colorir_valores, subset=["ValidacaoContenido", "ValidacionPrecio"]),
+        df.style.applymap(colorir_valores, subset=["ValidacaoContenido", "ValidacionPrecio", "ValidacionPrecioMediana"]),
         use_container_width=True
     )
 
