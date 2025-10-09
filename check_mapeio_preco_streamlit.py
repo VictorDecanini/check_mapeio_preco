@@ -121,11 +121,25 @@ def colorir_valores(val):
 # ----------------------------
 # Upload do arquivo
 # ----------------------------
-uploaded_file = st.file_uploader("Escolha o arquivo Excel", type=["xlsx"])
+uploaded_file = st.file_uploader("Escolha o arquivo Excel ou CSV", type=["xlsx", "csv"])
+
 if uploaded_file is not None:
     st.info("Processando arquivo...")
-    df = pd.read_excel(uploaded_file, header = 0)
-    df = df[df['Imp Vta (Ult.24 Meses)'] > 0]
+
+    # Detecta automaticamente o tipo de arquivo pelo sufixo
+    if uploaded_file.name.endswith(".csv"):
+        df = pd.read_csv(uploaded_file, encoding="utf-8", sep=None, engine="python")
+    else:
+        df = pd.read_excel(uploaded_file, header=0)
+
+    # Garante consistência nos nomes das colunas (remove espaços extras, etc.)
+    df.columns = df.columns.str.strip()
+
+    # # Filtra conforme sua regra original
+    # if "Imp Vta (Ult.24 Meses)" in df.columns:
+    #     df = df[df["Imp Vta (Ult.24 Meses)"] > 0]
+    # else:
+    #     st.warning("Coluna 'Imp Vta (Ult.24 Meses)' não encontrada no arquivo.")
 
     # Ajuste das colunas utilizadas
     coluna_descricao = "Descripcion"
