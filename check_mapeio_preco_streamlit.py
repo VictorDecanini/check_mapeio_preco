@@ -180,27 +180,97 @@ def to_excel_com_resumo(df, coluna_vendas):
         ]
     })
 
-    # ----------------------------
-    # Criar Excel com duas abas
-    # ----------------------------
+    # # ----------------------------
+    # # Criar Excel com duas abas
+    # # ----------------------------
+    # with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+    #     # Aba com dados detalhados
+    #     df.to_excel(writer, index=False, sheet_name="Dados")
+        
+    #     # Aba resumo
+    #     df_resumo.to_excel(writer, index=False, sheet_name="Resumo")
+        
+    #     # Formatação
+    #     workbook  = writer.book
+    #     worksheet = writer.sheets["Resumo"]
+        
+    #     # Formato de porcentagem
+    #     percent_fmt = workbook.add_format({'num_format': '0.0%'})
+        
+    #     # Aplica formato de % apenas nas linhas correspondentes
+    #     # df_resumo é 0-indexed: linha 6 → B8, linha 9 → B11
+    #     worksheet.write_number(7, 1, df_resumo.loc[6, "Valor"] / 100, percent_fmt)
+    #     worksheet.write_number(10, 1, df_resumo.loc[9, "Valor"] / 100, percent_fmt)
     with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-        # Aba com dados detalhados
-        df.to_excel(writer, index=False, sheet_name="Dados")
-        
-        # Aba resumo
-        df_resumo.to_excel(writer, index=False, sheet_name="Resumo")
-        
-        # Formatação
-        workbook  = writer.book
+        # --- Aba Detalhes ---
+        df.to_excel(writer, index=False, sheet_name="Detalhes")
+
+        # --- Aba Resumo ---
+        df_resumo.to_excel(writer, index=False, sheet_name="Resumo", startrow=1)
+
+        workbook = writer.book
         worksheet = writer.sheets["Resumo"]
-        
-        # Formato de porcentagem
-        percent_fmt = workbook.add_format({'num_format': '0.0%'})
-        
-        # Aplica formato de % apenas nas linhas correspondentes
-        # df_resumo é 0-indexed: linha 6 → B8, linha 9 → B11
-        worksheet.write_number(7, 1, df_resumo.loc[6, "Valor"] / 100, percent_fmt)
-        worksheet.write_number(10, 1, df_resumo.loc[9, "Valor"] / 100, percent_fmt)
+
+        # ----------------------------
+        # FORMATOS
+        # ----------------------------
+        header_format = workbook.add_format({
+            "bold": True, "align": "center", "valign": "vcenter",
+            "bg_color": "#D9D9D9", "border": 1
+        })
+
+        normal_format = workbook.add_format({"border": 1})
+        bold_format = workbook.add_format({"bold": True, "border": 1})
+        orange_bold_format = workbook.add_format({
+            "bold": True, "border": 1, "font_color": "#E36C0A"
+        })
+        gray_format = workbook.add_format({
+            "bg_color": "#F2F2F2", "border": 1, "bold": True
+        })
+        percent_format = workbook.add_format({
+            "num_format": "0.0%", "border": 1
+        })
+        number_format = workbook.add_format({
+            "num_format": "#,##0", "border": 1
+        })
+
+        # ----------------------------
+        # AJUSTE DE LARGURAS
+        # ----------------------------
+        worksheet.set_column("A:A", 70)
+        worksheet.set_column("B:B", 25)
+
+        # ----------------------------
+        # CABEÇALHOS
+        # ----------------------------
+        worksheet.write("A1", "Métrica", header_format)
+        worksheet.write("B1", "Números", header_format)
+
+        # ----------------------------
+        # APLICA FORMATAÇÃO LINHA A LINHA
+        # ----------------------------
+        for i, (metrica, valor) in enumerate(zip(df_resumo["Métrica"], df_resumo["Valor"]), start=2):
+            # Linhas com % (mesmas do seu código anterior)
+            if i in [9, 12]:  # B8 e B11 → linhas 9 e 12 (1-based + 1 de header)
+                worksheet.write_number(i - 1, 1, valor / 100, percent_format)
+            else:
+                worksheet.write(i - 1, 1, valor, number_format)
+
+            worksheet.write(i - 1, 0, metrica, normal_format)
+
+        # ----------------------------
+        # BLOCOS COLORIDOS
+        # ----------------------------
+        # Linhas de seção (como "Critérios de itens com possíveis problemas")
+        worksheet.merge_range("A4:B4", "Critérios de itens com possíveis problemas", gray_format)
+        worksheet.merge_range("A11:B11", "Volume de vendas total", gray_format)
+        worksheet.merge_range("A14:B14", "Top 50 Skus - Share Acumulado", gray_format)
+
+        # Linhas laranja (destaques)
+        worksheet.write("A9", "Qtd de SKUs/itens com possíveis problemas", orange_bold_format)
+        worksheet.write("A12", "% Volume de vendas dos skus com possíveis problemas", orange_bold_format)
+
+
 
     return output.getvalue()
 
@@ -322,7 +392,7 @@ if uploaded_file is not None:
 
     # Cria a coluna 'StatusGeral' indicando se há algum problema
     df["StatusGeral"] = df.apply(
-        lambda x: "PROBLEMA"
+        lambda x: "RISCO"
         if (
             x["ValidacaoContenido"] != "OK"
             or x["ValidacionPrecio"] != "OK"
