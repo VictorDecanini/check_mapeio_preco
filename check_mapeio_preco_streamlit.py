@@ -261,6 +261,10 @@ def to_excel_com_resumo(df, coluna_vendas):
         #     if i == 3:
         #         worksheet.write(i - 1, 0, metrica, normal_format)
 
+        # Escrever a primeira linha do DataFrame na linha 2 do Excel
+        worksheet.write(1, 0, df_resumo["Métrica"].iloc[0], normal_format)
+        worksheet.write(1, 1, df_resumo["Valor"].iloc[0], number_format)
+        
         # Linha inicial para escrever os dados (começando na linha 4, pois linha 3 é cabeçalho)
         linha_inicial = 3
 
