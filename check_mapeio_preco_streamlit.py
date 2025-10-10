@@ -156,15 +156,15 @@ def to_excel_com_resumo(df, coluna_vendas):
     df_resumo = pd.DataFrame({
         "Métrica": [
             "Qtd total de SKUs/Itens",
-            "Qtd de problemas de contenido",
-            "Qtd de outliers em ambos (mediana e quartil)",
-            "Qtd de outliers apenas mediana",
-            "Qtd de outliers apenas quartil",
-            "Qtd total de SKUs/itens com problema (valor bruto)",
-            "Qtd total de SKUs/itens com problema (%)",
+            "1. Skus com possíveis problemas de contenido",
+            "2. Outliers idenficados através da mediana (3x) e quartil (5%)",
+            "3. Outilers apenas mediana (3x)",
+            "4. Outliers apenas quartil (5%)",
+            "Qtd de SKUs/itens com possíveis problemas",
+            "'%' de SKUs/itens com possíveis problemas",
             "Volume de vendas total",
-            "Volume de vendas com problema (valor bruto)",
-            "Volume de vendas com problema (%)"
+            "Volume de vendas dos skus com possíveis problemas",
+            "% Volume de vendas dos skus com possíveis problemas"
         ],
         "Valor": [
             total_itens,
@@ -295,10 +295,10 @@ def to_excel_com_resumo(df, coluna_vendas):
         worksheet.merge_range("A3:B3", "Critérios de itens com possíveis problemas", gray_format)
 
         # 2️⃣ Linhas laranja — na mesma linha correta
-        worksheet.write("A8", "Qtd total de SKUs/itens com problema (%)", orange_bold_format)
+        worksheet.write("A8", "'%' de SKUs/itens com possíveis problemas", orange_bold_format)
         worksheet.write("B8", df_resumo.loc[6, "Valor"] / 100, percent_format)  # Qtd total problemas
 
-        worksheet.write("A12", "Volume de vendas com problema (%)", orange_bold_format)
+        worksheet.write("A12", "% Volume de vendas dos skus com possíveis problemas", orange_bold_format)
         worksheet.write_number("B12", df_resumo.loc[9, "Valor"] / 100, percent_format)
 
         # 3️⃣ Remove destaque do “Volume de vendas total” e insere linha em branco antes do “com problema”
