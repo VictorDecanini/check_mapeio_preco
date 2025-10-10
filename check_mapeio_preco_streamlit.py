@@ -269,25 +269,41 @@ def to_excel_com_resumo(df, coluna_vendas):
         worksheet.write(2, 0, "Métrica", header_format)
         worksheet.write(2, 1, "Valor", header_format)
 
-        # Linha inicial para escrever os dados (começando na linha 4, pois linha 3 é cabeçalho)
-        linha_inicial = 3
+        start_row = 3            # onde começar a escrever as métricas (0-indexed)
+        special_idx = 5          # índice em df_resumo para "Qtd de SKUs/itens com possíveis problemas"
+        special_target_row = 7   # linha destino no Excel (0-indexed) -> 7 = Excel linha 8
+
+        current_row = start_row
 
         for i, (metrica, valor) in enumerate(zip(df_resumo["Métrica"], df_resumo["Valor"])):
-            linha_atual = linha_inicial + i
-            
-            # Se chegamos à linha 8 (percentual), aplicamos o formato percentual
-            if linha_atual == 8:
-                worksheet.write_number(linha_atual - 1, 1, valor / 100, percent_format)
+            # Quando chegarmos na métrica especial, garantimos que ela fique na linha special_target_row
+            if i == special_idx:
+                # insere linhas em branco até atingirmos a linha desejada (empurra abaixo)
+                while current_row < special_target_row:
+                    worksheet.write(current_row, 0, "", normal_format)
+                    worksheet.write(current_row, 1, "", number_format)
+                    current_row += 1
+
+                # agora escreve a métrica especial na linha target
+                worksheet.write(current_row, 0, metrica, normal_format)
+                worksheet.write(current_row, 1, valor, number_format)
+                current_row += 1
+                continue
+
+            # Se não for a métrica especial, escreve normalmente
+            worksheet.write(current_row, 0, metrica, normal_format)
+
+            # aplica formato percentual às linhas 6 e 9 do df_resumo (índices 6 e 9)
+            if i in [6, 9]:
+                # valor já está em %, por isso dividimos por 100 para o formato percentual do Excel
+                try:
+                    worksheet.write_number(current_row, 1, float(valor) / 100, percent_format)
+                except Exception:
+                    worksheet.write(current_row, 1, valor, normal_format)
             else:
-                worksheet.write(linha_atual - 1, 1, valor, number_format)
-            
-            # Escreve a métrica na coluna A
-            worksheet.write(linha_atual - 1, 0, metrica, normal_format)
+                worksheet.write(current_row, 1, valor, number_format)
 
-        # Inserir linha vazia após a linha 8 (que será a linha 9)
-        worksheet.write_blank(8, 0, None, normal_format)
-        worksheet.write_blank(8, 1, None, number_format)
-
+            current_row += 1
         # ----------------------------
         # BLOCOS COLORIDOS
         # ----------------------------
