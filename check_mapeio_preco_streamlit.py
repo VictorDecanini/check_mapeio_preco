@@ -202,6 +202,7 @@ def to_excel_com_resumo(df, coluna_vendas):
     #     worksheet.write_number(7, 1, df_resumo.loc[6, "Valor"] / 100, percent_fmt)
     #     worksheet.write_number(10, 1, df_resumo.loc[9, "Valor"] / 100, percent_fmt)
 
+
     with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
         # --- Aba Detalhes ---
         df.to_excel(writer, index=False, sheet_name="Detalhes")
@@ -234,7 +235,7 @@ def to_excel_com_resumo(df, coluna_vendas):
         number_format = workbook.add_format({
             "num_format": "#,##0", "border": 1
         })
-        empty_format = workbook.add_format()
+        empty_format = workbook.add_format()  # para linhas em branco
 
         # ----------------------------
         # AJUSTE DE LARGURAS
@@ -249,121 +250,52 @@ def to_excel_com_resumo(df, coluna_vendas):
         worksheet.write("B1", "Números", header_format)
 
         # ----------------------------
-        # LINHAS EXTRAS (header na 3 e linha em branco na 9)
-        # ----------------------------
-        # Linha 3 → header "Critérios de itens com possíveis problemas"
-        worksheet.merge_range("A3:B3", "Critérios de itens com possíveis problemas", gray_format)
-
-        # Criar um mapeamento do DataFrame para as linhas do Excel
-        # Offset = quantas linhas extras já adicionamos antes da linha do df
-        excel_offset_map = []
-        for idx in range(len(df_resumo)):
-            if idx < 6:
-                excel_offset_map.append(idx + 2)  # linhas 2~7
-            elif idx >= 6:
-                excel_offset_map.append(idx + 3)  # pula a linha 9 (linha em branco)
-
-        # ----------------------------
         # APLICA FORMATAÇÃO LINHA A LINHA
         # ----------------------------
+        # for i, (metrica, valor) in enumerate(zip(df_resumo["Métrica"], df_resumo["Valor"]), start=2):
+        #     # Linhas com % (mesmas do seu código anterior)
+        #     if i in [8, 12]:  # B8 e B11 → linhas 8 e 11 (1-based + 1 de header)
+        #         worksheet.write_number(i - 1, 1, valor / 100, percent_format)
+        #     else:
+        #         worksheet.write(i - 1, 1, valor, number_format)
+        #     if i == 3:
+        #         worksheet.write(i - 1, 0, metrica, normal_format)
+
+        # Linha inicial para escrever os dados (começando na linha 4, pois linha 3 é cabeçalho)
+        linha_inicial = 3
+
         for i, (metrica, valor) in enumerate(zip(df_resumo["Métrica"], df_resumo["Valor"])):
-            excel_row = excel_offset_map[i]
-
-            # Linha em branco antes do item 7 (Excel row 9)
-            if excel_row == 9:
-                worksheet.write(excel_row, 0, "", empty_format)
-                worksheet.write(excel_row, 1, "", empty_format)
-                continue
-
-            # Aplicar formatação para percentuais específicos (substitua as linhas conforme seu df)
-            if metrica in ["Qtd total de SKUs/itens com problema (%)"]:
-                worksheet.write(excel_row, 0, metrica, orange_bold_format)
-                worksheet.write_number(excel_row, 1, valor, number_format)
-            elif metrica in ["Volume de vendas com problema (%)"]:
-                worksheet.write(excel_row, 0, metrica, orange_bold_format)
-                worksheet.write_number(excel_row, 1, valor / 100, percent_format)
+            linha_atual = linha_inicial + i
+            
+            # Se chegamos à linha 8 (percentual), aplicamos o formato percentual
+            if linha_atual == 8:
+                worksheet.write_number(linha_atual - 1, 1, valor / 100, percent_format)
             else:
-                worksheet.write(excel_row, 0, metrica, normal_format)
-                worksheet.write(excel_row, 1, valor, number_format)
+                worksheet.write(linha_atual - 1, 1, valor, number_format)
+            
+            # Escreve a métrica na coluna A
+            worksheet.write(linha_atual - 1, 0, metrica, normal_format)
 
+        # Inserir linha vazia após a linha 8 (que será a linha 9)
+        worksheet.write_blank(8, 0, None, normal_format)
+        worksheet.write_blank(8, 1, None, number_format)
 
+        # ----------------------------
+        # BLOCOS COLORIDOS
+        # ----------------------------
+        # 1️⃣ Critérios na linha 3
+        worksheet.merge_range("A3:B3", "Critérios de itens com possíveis problemas", gray_format)
 
+        # 2️⃣ Linhas laranja — na mesma linha correta
+        worksheet.write("A8", "Qtd total de SKUs/itens com problema (%)", orange_bold_format)
+        worksheet.write("B8", df_resumo.loc[6, "Valor"], percent_format)  # Qtd total problemas
 
+        worksheet.write("A12", "Volume de vendas com problema (%)", orange_bold_format)
+        worksheet.write_number("B12", df_resumo.loc[9, "Valor"] / 100, percent_format)
 
-    # with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-    #     # --- Aba Detalhes ---
-    #     df.to_excel(writer, index=False, sheet_name="Detalhes")
-
-    #     # --- Aba Resumo ---
-    #     df_resumo.to_excel(writer, index=False, sheet_name="Resumo", startrow=1)
-
-    #     workbook = writer.book
-    #     worksheet = writer.sheets["Resumo"]
-
-    #     # ----------------------------
-    #     # FORMATOS
-    #     # ----------------------------
-    #     header_format = workbook.add_format({
-    #         "bold": True, "align": "center", "valign": "vcenter",
-    #         "bg_color": "#D9D9D9", "border": 1
-    #     })
-
-    #     normal_format = workbook.add_format({"border": 1})
-    #     bold_format = workbook.add_format({"bold": True, "border": 1})
-    #     orange_bold_format = workbook.add_format({
-    #         "bold": True, "border": 1, "font_color": "#E36C0A"
-    #     })
-    #     gray_format = workbook.add_format({
-    #         "bg_color": "#F2F2F2", "border": 1, "bold": True
-    #     })
-    #     percent_format = workbook.add_format({
-    #         "num_format": "0.0%", "border": 1
-    #     })
-    #     number_format = workbook.add_format({
-    #         "num_format": "#,##0", "border": 1
-    #     })
-    #     empty_format = workbook.add_format()  # para linhas em branco
-
-    #     # ----------------------------
-    #     # AJUSTE DE LARGURAS
-    #     # ----------------------------
-    #     worksheet.set_column("A:A", 60)
-    #     worksheet.set_column("B:B", 25)
-
-    #     # ----------------------------
-    #     # CABEÇALHOS
-    #     # ----------------------------
-    #     worksheet.write("A1", "Métrica", header_format)
-    #     worksheet.write("B1", "Números", header_format)
-
-    #     # ----------------------------
-    #     # APLICA FORMATAÇÃO LINHA A LINHA
-    #     # ----------------------------
-    #     for i, (metrica, valor) in enumerate(zip(df_resumo["Métrica"], df_resumo["Valor"]), start=2):
-    #         # Linhas com % (mesmas do seu código anterior)
-    #         if i in [8, 11]:  # B8 e B11 → linhas 8 e 11 (1-based + 1 de header)
-    #             worksheet.write_number(i - 1, 1, valor / 100, percent_format)
-    #         else:
-    #             worksheet.write(i - 1, 1, valor, number_format)
-
-    #         worksheet.write(i - 1, 0, metrica, normal_format)
-
-    #     # ----------------------------
-    #     # BLOCOS COLORIDOS
-    #     # ----------------------------
-    #     # 1️⃣ Critérios na linha 3
-    #     worksheet.merge_range("A3:B3", "Critérios de itens com possíveis problemas", gray_format)
-
-    #     # 2️⃣ Linhas laranja — na mesma linha correta
-    #     worksheet.write("A8", "Qtd total de SKUs/itens com problema (%)", orange_bold_format)
-    #     worksheet.write("B8", df_resumo.loc[6, "Valor"], number_format)  # Qtd total problemas
-
-    #     worksheet.write("A12", "Volume de vendas com problema (%)", orange_bold_format)
-    #     worksheet.write_number("B12", df_resumo.loc[9, "Valor"] / 100, percent_format)
-
-    #     # 3️⃣ Remove destaque do “Volume de vendas total” e insere linha em branco antes do “com problema”
-    #     worksheet.write("A9", "", empty_format)
-    #     worksheet.write("B9", "", empty_format)
+        # 3️⃣ Remove destaque do “Volume de vendas total” e insere linha em branco antes do “com problema”
+        worksheet.write("A9", "", empty_format)
+        worksheet.write("B9", "", empty_format)
 
         # 4️⃣ Título inferior (Top 50 SKUs)
         # worksheet.merge_range("A13:B13", "Top 50 Skus - Share Acumulado", gray_format)
