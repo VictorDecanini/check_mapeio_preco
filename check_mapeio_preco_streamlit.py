@@ -261,10 +261,14 @@ def to_excel_com_resumo(df, coluna_vendas):
         #     if i == 3:
         #         worksheet.write(i - 1, 0, metrica, normal_format)
 
-        # Escrever a primeira linha do DataFrame na linha 2 do Excel
+        # 1️⃣ Escreve a primeira linha do df_resumo na linha 2
         worksheet.write(1, 0, df_resumo["Métrica"].iloc[0], normal_format)
         worksheet.write(1, 1, df_resumo["Valor"].iloc[0], number_format)
-        
+
+        # 2️⃣ Cabeçalho na linha 3
+        worksheet.write(2, 0, "Métrica", header_format)
+        worksheet.write(2, 1, "Valor", header_format)
+
         # Linha inicial para escrever os dados (começando na linha 4, pois linha 3 é cabeçalho)
         linha_inicial = 3
 
@@ -292,7 +296,7 @@ def to_excel_com_resumo(df, coluna_vendas):
 
         # 2️⃣ Linhas laranja — na mesma linha correta
         worksheet.write("A8", "Qtd total de SKUs/itens com problema (%)", orange_bold_format)
-        worksheet.write("B8", df_resumo.loc[6, "Valor"], percent_format)  # Qtd total problemas
+        worksheet.write("B8", df_resumo.loc[6, "Valor"] / 100, percent_format)  # Qtd total problemas
 
         worksheet.write("A12", "Volume de vendas com problema (%)", orange_bold_format)
         worksheet.write_number("B12", df_resumo.loc[9, "Valor"] / 100, percent_format)
