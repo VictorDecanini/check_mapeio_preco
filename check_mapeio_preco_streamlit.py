@@ -320,6 +320,19 @@ if uploaded_file is not None:
     df["ValidacionPrecio"] = validar_precio_por_categoria(df, coluna_preco, coluna_categoria)
     df["ValidacionPrecioMediana"] = validar_precio_mediana(df, coluna_preco, coluna_categoria)
 
+    # Cria a coluna 'StatusGeral' indicando se há algum problema
+    df["StatusGeral"] = df.apply(
+        lambda x: "PROBLEMA"
+        if (
+            x["ValidacaoContenido"] != "OK"
+            or x["ValidacionPrecio"] != "OK"
+            or x["ValidacionPrecioMediana"] != "OK"
+        )
+        else "OK",
+        axis=1
+    )
+
+
     st.success("✅ Processamento concluído com sucesso!")
 
 
@@ -327,7 +340,7 @@ if uploaded_file is not None:
     # Exibição
     # ----------------------------
     st.dataframe(
-        df.style.applymap(colorir_valores, subset=["ValidacaoContenido", "ValidacionPrecio", "ValidacionPrecioMediana"]),
+        df.style.applymap(colorir_valores, subset=["ValidacaoContenido", "ValidacionPrecio", "ValidacionPrecioMediana", "StatusGeral"]),
         use_container_width=True
     )
 
