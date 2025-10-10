@@ -237,7 +237,7 @@ def to_excel_com_resumo(df, coluna_vendas):
         # ----------------------------
         # AJUSTE DE LARGURAS
         # ----------------------------
-        worksheet.set_column("A:A", 70)
+        worksheet.set_column("A:A", 60)
         worksheet.set_column("B:B", 25)
 
         # ----------------------------
@@ -252,11 +252,11 @@ def to_excel_com_resumo(df, coluna_vendas):
         for i, (metrica, valor) in enumerate(zip(df_resumo["Métrica"], df_resumo["Valor"]), start=2):
             # Linhas com % (mesmas do seu código anterior)
             if i in [9, 12]:  # B8 e B11 → linhas 9 e 12 (1-based + 1 de header)
-                worksheet.write_number(i - 1, 1, valor / 100, percent_format)
+                worksheet.write_number(i - 2, 1, valor / 100, percent_format)
             else:
-                worksheet.write(i - 1, 1, valor, number_format)
+                worksheet.write(i - 2, 1, valor, number_format)
 
-            worksheet.write(i - 1, 0, metrica, normal_format)
+            worksheet.write(i - 2, 0, metrica, normal_format)
 
         # ----------------------------
         # BLOCOS COLORIDOS
@@ -267,8 +267,8 @@ def to_excel_com_resumo(df, coluna_vendas):
         worksheet.merge_range("A14:B14", "Top 50 Skus - Share Acumulado", gray_format)
 
         # Linhas laranja (destaques)
-        worksheet.write("A9", "Qtd de SKUs/itens com possíveis problemas", orange_bold_format)
-        worksheet.write("A12", "% Volume de vendas dos skus com possíveis problemas", orange_bold_format)
+        worksheet.write("A9:B9", "Qtd de SKUs/itens com possíveis problemas", orange_bold_format)
+        worksheet.write("A12:B12", "% Volume de vendas dos skus com possíveis problemas", orange_bold_format)
 
 
 
