@@ -266,18 +266,18 @@ def to_excel_com_resumo(df, coluna_vendas):
         worksheet.merge_range("A3:B3", "Critérios de itens com possíveis problemas", gray_format)
 
         # 2️⃣ Linhas laranja — na mesma linha correta
-        worksheet.write("A8", "Qtd de SKUs/itens com possíveis problemas", orange_bold_format)
-        worksheet.write("B8", df_resumo.loc[5, "Valor"], number_format)  # Qtd total problemas
+        worksheet.write("A8", "Qtd total de SKUs/itens com problema (%)", orange_bold_format)
+        worksheet.write("B8", df_resumo.loc[6, "Valor"], number_format)  # Qtd total problemas
 
-        worksheet.write("A11", "% Volume de vendas dos skus com possíveis problemas", orange_bold_format)
-        worksheet.write_number("B11", df_resumo.loc[9, "Valor"] / 100, percent_format)
+        worksheet.write("A12", "Volume de vendas com problema (%)", orange_bold_format)
+        worksheet.write_number("B12", df_resumo.loc[9, "Valor"] / 100, percent_format)
 
         # 3️⃣ Remove destaque do “Volume de vendas total” e insere linha em branco antes do “com problema”
         worksheet.write("A9", "", empty_format)
         worksheet.write("B9", "", empty_format)
 
         # 4️⃣ Título inferior (Top 50 SKUs)
-        worksheet.merge_range("A13:B13", "Top 50 Skus - Share Acumulado", gray_format)
+        # worksheet.merge_range("A13:B13", "Top 50 Skus - Share Acumulado", gray_format)
 
 
 
