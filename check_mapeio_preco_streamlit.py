@@ -233,6 +233,7 @@ def to_excel_com_resumo(df, coluna_vendas):
         number_format = workbook.add_format({
             "num_format": "#,##0", "border": 1
         })
+        empty_format = workbook.add_format()  # para linhas em branco
 
         # ----------------------------
         # AJUSTE DE LARGURAS
@@ -251,24 +252,32 @@ def to_excel_com_resumo(df, coluna_vendas):
         # ----------------------------
         for i, (metrica, valor) in enumerate(zip(df_resumo["Métrica"], df_resumo["Valor"]), start=2):
             # Linhas com % (mesmas do seu código anterior)
-            if i in [9, 12]:  # B8 e B11 → linhas 9 e 12 (1-based + 1 de header)
-                worksheet.write_number(i - 2, 1, valor / 100, percent_format)
+            if i in [8, 11]:  # B8 e B11 → linhas 8 e 11 (1-based + 1 de header)
+                worksheet.write_number(i - 1, 1, valor / 100, percent_format)
             else:
-                worksheet.write(i - 2, 1, valor, number_format)
+                worksheet.write(i - 1, 1, valor, number_format)
 
-            worksheet.write(i - 2, 0, metrica, normal_format)
+            worksheet.write(i - 1, 0, metrica, normal_format)
 
         # ----------------------------
         # BLOCOS COLORIDOS
         # ----------------------------
-        # Linhas de seção (como "Critérios de itens com possíveis problemas")
-        worksheet.merge_range("A4:B4", "Critérios de itens com possíveis problemas", gray_format)
-        worksheet.merge_range("A11:B11", "Volume de vendas total", gray_format)
-        worksheet.merge_range("A14:B14", "Top 50 Skus - Share Acumulado", gray_format)
+        # 1️⃣ Critérios na linha 3
+        worksheet.merge_range("A3:B3", "Critérios de itens com possíveis problemas", gray_format)
 
-        # Linhas laranja (destaques)
-        worksheet.write("A9:B9", "Qtd de SKUs/itens com possíveis problemas", orange_bold_format)
-        worksheet.write("A12:B12", "% Volume de vendas dos skus com possíveis problemas", orange_bold_format)
+        # 2️⃣ Linhas laranja — na mesma linha correta
+        worksheet.write("A8", "Qtd de SKUs/itens com possíveis problemas", orange_bold_format)
+        worksheet.write("B8", df_resumo.loc[5, "Valor"], number_format)  # Qtd total problemas
+
+        worksheet.write("A11", "% Volume de vendas dos skus com possíveis problemas", orange_bold_format)
+        worksheet.write_number("B11", df_resumo.loc[9, "Valor"] / 100, percent_format)
+
+        # 3️⃣ Remove destaque do “Volume de vendas total” e insere linha em branco antes do “com problema”
+        worksheet.write("A9", "", empty_format)
+        worksheet.write("B9", "", empty_format)
+
+        # 4️⃣ Título inferior (Top 50 SKUs)
+        worksheet.merge_range("A13:B13", "Top 50 Skus - Share Acumulado", gray_format)
 
 
 
