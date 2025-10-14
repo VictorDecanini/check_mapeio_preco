@@ -36,7 +36,7 @@ def extrair_peso(texto):
         return None, None
     texto = str(texto)
     unidades_intermed = r"(?:UN|UNID|CJ|CX|DS|PCT|FD|SC)?"
-    unidade_final = r"(kg|g|gr|ml|l|lt)"
+    unidade_final = r"(kg|g|gr|ml|l|lt|lts|litros)"
 
     match_multi = re.search(rf"((?:\d+\s*{unidades_intermed}\s*[xX]\s*)+\d+[.,]?\d*\s*{unidade_final})", texto, re.IGNORECASE)
     if match_multi:
