@@ -45,7 +45,7 @@ def extrair_peso(texto):
         numeros = [float(n.replace(",", ".")) for n in re.findall(r"\d+[.,]?\d*", bloco)]
         multiplicadores = numeros[:-1] if len(numeros) > 1 else []
         peso = numeros[-1]
-        if unidade in ["kg", "lt", "l"]:
+        if unidade in ["kg", "lt", "l", "lts", "litros"]:
             peso *= 1000
         total = peso
         for n in multiplicadores:
@@ -58,7 +58,7 @@ def extrair_peso(texto):
         n2 = int(match_3d.group(2))
         valor = float(match_3d.group(3).replace(",", "."))
         unidade = match_3d.group(4).lower()
-        if unidade in ["kg", "lt", "l"]:
+        if unidade in ["kg", "lt", "l", "lts", "litros"]:
             valor *= 1000
         return match_3d.group(0), int(n1 * n2 * valor)
 
@@ -67,7 +67,7 @@ def extrair_peso(texto):
         n1 = int(match_2d.group(1))
         valor = float(match_2d.group(2).replace(",", "."))
         unidade = match_2d.group(3).lower()
-        if unidade in ["kg", "lt", "l"]:
+        if unidade in ["kg", "lt", "l", "lts", "litros"]:
             valor *= 1000
         return match_2d.group(0), int(n1 * valor)
 
@@ -75,7 +75,7 @@ def extrair_peso(texto):
     if match:
         valor = float(match.group(1).replace(",", "."))
         unidade = match.group(2).lower()
-        if unidade in ["kg", "lt", "l"]:
+        if unidade in ["kg", "lt", "l", "lts", "litros"]:
             valor *= 1000
         return match.group(0), int(valor)
 
