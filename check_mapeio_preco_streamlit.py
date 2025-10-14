@@ -180,27 +180,6 @@ def to_excel_com_resumo(df, coluna_vendas):
         ]
     })
 
-    # # ----------------------------
-    # # Criar Excel com duas abas
-    # # ----------------------------
-    # with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-    #     # Aba com dados detalhados
-    #     df.to_excel(writer, index=False, sheet_name="Dados")
-        
-    #     # Aba resumo
-    #     df_resumo.to_excel(writer, index=False, sheet_name="Resumo")
-        
-    #     # Formatação
-    #     workbook  = writer.book
-    #     worksheet = writer.sheets["Resumo"]
-        
-    #     # Formato de porcentagem
-    #     percent_fmt = workbook.add_format({'num_format': '0.0%'})
-        
-    #     # Aplica formato de % apenas nas linhas correspondentes
-    #     # df_resumo é 0-indexed: linha 6 → B8, linha 9 → B11
-    #     worksheet.write_number(7, 1, df_resumo.loc[6, "Valor"] / 100, percent_fmt)
-    #     worksheet.write_number(10, 1, df_resumo.loc[9, "Valor"] / 100, percent_fmt)
 
 
     with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
@@ -249,18 +228,6 @@ def to_excel_com_resumo(df, coluna_vendas):
         worksheet.write("A1", "Métrica", header_format)
         worksheet.write("B1", "Números", header_format)
 
-        # ----------------------------
-        # APLICA FORMATAÇÃO LINHA A LINHA
-        # ----------------------------
-        # for i, (metrica, valor) in enumerate(zip(df_resumo["Métrica"], df_resumo["Valor"]), start=2):
-        #     # Linhas com % (mesmas do seu código anterior)
-        #     if i in [8, 12]:  # B8 e B11 → linhas 8 e 11 (1-based + 1 de header)
-        #         worksheet.write_number(i - 1, 1, valor / 100, percent_format)
-        #     else:
-        #         worksheet.write(i - 1, 1, valor, number_format)
-        #     if i == 3:
-        #         worksheet.write(i - 1, 0, metrica, normal_format)
-
         # 1️⃣ Escreve a primeira linha do df_resumo na linha 2
         worksheet.write(1, 0, df_resumo["Métrica"].iloc[0], normal_format)
         worksheet.write(1, 1, df_resumo["Valor"].iloc[0], number_format)
@@ -307,8 +274,6 @@ def to_excel_com_resumo(df, coluna_vendas):
 
         # 4️⃣ Título inferior (Top 50 SKUs)
         # worksheet.merge_range("A13:B13", "Top 50 Skus - Share Acumulado", gray_format)
-
-
 
     return output.getvalue()
 
@@ -442,15 +407,6 @@ if uploaded_file is not None:
 
 
     st.success("✅ Processamento concluído com sucesso!")
-
-
-    # ----------------------------
-    # Exibição
-    # ----------------------------
-    st.dataframe(
-        df.style.applymap(colorir_valores, subset=["ValidacaoContenido", "ValidacionPrecio", "ValidacionPrecioMediana", "StatusGeral"]),
-        use_container_width=True
-    )
 
 ###########################################################################
 ### FUNÇÃO PARA GERAR ABA NO EXCEL COM RESUMO DOS PROBLEMAS ENCONTRADOS ###
