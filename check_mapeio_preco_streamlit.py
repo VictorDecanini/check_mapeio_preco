@@ -93,11 +93,12 @@ def validar_precio_por_categoria(df, coluna_preco, coluna_categoria):
         )
     df[coluna_preco] = pd.to_numeric(df[coluna_preco], errors="coerce")
 
-    def marcar_outliers(df, grupo):
-        if len(df) < 1000:
+    def marcar_outliers(grupo):
+        n = len(grupo)
+        if n < 1000:
             limite_inferior = grupo.quantile(0.05)
             limite_superior = grupo.quantile(0.95)
-        elif len(df) < 2000:
+        elif n < 2000:
             limite_inferior = grupo.quantile(0.03)
             limite_superior = grupo.quantile(0.97)
         else:
