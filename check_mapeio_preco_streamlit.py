@@ -36,7 +36,7 @@ def extrair_peso(texto):
         return None, None
     texto = str(texto)
     unidades_intermed = r"(?:UN|UNID|CJ|CX|DS|PCT|FD|SC)?"
-    unidade_final = r"(kg|g|gr|ml|l|lt|lts|litros)"
+    unidade_final = r"(kg|g|gr|gr|ml|l|lt|lts|litros)"
 
     match_multi = re.search(rf"((?:\d+\s*{unidades_intermed}\s*[xX]\s*)+\d+[.,]?\d*\s*{unidade_final})", texto, re.IGNORECASE)
     if match_multi:
@@ -93,9 +93,16 @@ def validar_precio_por_categoria(df, coluna_preco, coluna_categoria):
         )
     df[coluna_preco] = pd.to_numeric(df[coluna_preco], errors="coerce")
 
-    def marcar_outliers(grupo):
-        limite_inferior = grupo.quantile(0.05)
-        limite_superior = grupo.quantile(0.95)
+    def marcar_outliers(df, grupo):
+        if len(df) < 1000:
+            limite_inferior = grupo.quantile(0.05)
+            limite_superior = grupo.quantile(0.95)
+        elif len(df) < 2000:
+            limite_inferior = grupo.quantile(0.03)
+            limite_superior = grupo.quantile(0.97)
+        else:
+            limite_inferior = grupo.quantile(0.02)
+            limite_superior = grupo.quantile(0.98)
         return grupo.apply(lambda x: "OK" if limite_inferior <= x <= limite_superior else "OUTLIER")
     return df.groupby(coluna_categoria)[coluna_preco].transform(marcar_outliers)
 
