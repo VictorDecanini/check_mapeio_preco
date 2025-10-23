@@ -107,7 +107,7 @@ def extrair_peso(texto):
         return match_un.group(0), total
 
     # Casos tipo "C/32" ou "C24UN"
-    match_c = re.search(r"C\/\s*(\d+)", texto)
+    match_c = re.search(r"C[\s./]?\d+)", texto)
     if match_c:
         return match_c.group(0), int(match_c.group(1))
 
