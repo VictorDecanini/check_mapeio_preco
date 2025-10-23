@@ -307,7 +307,11 @@ if uploaded_file is not None:
     # Leitura do arquivo
     # ----------------------------
     if uploaded_file.name.endswith(".csv"):
-        df = pd.read_csv(uploaded_file, encoding="utf-8", sep=None, engine="python")
+        try:
+            df = pd.read_csv(uploaded_file, encoding="utf-8", sep=None, engine="python")
+        except UnicodeDecodeError:
+            df = pd.read_csv(uploaded_file, encoding="latin-1", sep=None, engine="python")
+
     else:
         df = pd.read_excel(uploaded_file, header=0)
 
