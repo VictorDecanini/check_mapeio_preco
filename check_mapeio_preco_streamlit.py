@@ -95,10 +95,11 @@ def extrair_peso(texto):
     # 2️⃣ Caso não tenha achado peso/volume → tenta UNIDADES
     # -------------------------------------------------
     match_un = re.search(
-        r"(?:(\d+)\s*[xX]\s*)?(\d+)\s*(?:UN|UNID|UND|UNIDADE|UNIDADES|C\/\s*\d+|CJ|CX|PCT|FD|SC)\b",
+        r"(?:(\d+)\s*[xX]\s*)?(\d+)\s*(?:UN|UNID|UND|UNIDADE|UNIDADES|CJ|CX|PCT|FD|SC|C[\s./]?\d+)\b",
         texto,
         re.IGNORECASE
     )
+
     if match_un:
         multiplicador = int(match_un.group(1)) if match_un.group(1) else 1
         unidades = int(match_un.group(2))
