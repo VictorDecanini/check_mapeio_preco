@@ -44,7 +44,7 @@ def extrair_peso(texto):
     # 1️⃣ Tenta capturar formatos de PESO / VOLUME (Kg, L, etc)
     # -------------------------------------------------
     unidades_intermed = r"(?:UN|UNID|CJ|CX|DS|PCT|FD|SC)?"
-    unidade_final = r"(KG|G|GR|GRS|ML|L|LT|LTS|LITROS)"
+    unidade_final = r"(KILOS|KILO|KG|G|GR|GRS|GRAMAS|GRAMA|ML|L|LT|LTS|LITROS|LITRO)"
     
     # Casos compostos tipo 3x200G ou 2x500ML
     match_multi = re.search(rf"((?:\d+\s*{unidades_intermed}\s*[xX]\s*)+\d+[.,]?\d*\s*{unidade_final})", texto, re.IGNORECASE)
@@ -54,7 +54,7 @@ def extrair_peso(texto):
         numeros = [float(n.replace(",", ".")) for n in re.findall(r"\d+[.,]?\d*", bloco)]
         multiplicadores = numeros[:-1] if len(numeros) > 1 else []
         peso = numeros[-1]
-        if unidade in ["kg", "lt", "l", "lts", "litros"]:
+        if unidade in ["kg","kilos", "kilo", "lt", "l", "lts", "litros", "litro"]:
             peso *= 1000
         total = peso
         for n in multiplicadores:
@@ -68,7 +68,7 @@ def extrair_peso(texto):
         n2 = int(match_3d.group(2))
         valor = float(match_3d.group(3).replace(",", "."))
         unidade = match_3d.group(4).lower()
-        if unidade in ["kg", "lt", "l", "lts", "litros"]:
+        if unidade in ["kg","kilos", "kilo", "lt", "l", "lts", "litros", "litro"]:
             valor *= 1000
         return match_3d.group(0), int(n1 * n2 * valor)
 
@@ -78,7 +78,7 @@ def extrair_peso(texto):
         n1 = int(match_2d.group(1))
         valor = float(match_2d.group(2).replace(",", "."))
         unidade = match_2d.group(3).lower()
-        if unidade in ["kg", "lt", "l", "lts", "litros"]:
+        if unidade in ["kg","kilos", "kilo", "lt", "l", "lts", "litros", "litro"]:
             valor *= 1000
         return match_2d.group(0), int(n1 * valor)
 
@@ -87,7 +87,7 @@ def extrair_peso(texto):
     if match:
         valor = float(match.group(1).replace(",", "."))
         unidade = match.group(2).lower()
-        if unidade in ["kg", "lt", "l", "lts", "litros"]:
+        if unidade in ["kg","kilos", "kilo", "lt", "l", "lts", "litros", "litro"]:
             valor *= 1000
         return match.group(0), int(valor)
 
