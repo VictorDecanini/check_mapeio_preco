@@ -31,13 +31,22 @@ A ferramenta faz:
 # ----------------------------
 # Funções auxiliares
 # ----------------------------
+import re
+import pandas as pd
+
 def extrair_peso(texto):
     if pd.isna(texto):
         return None, None
-    texto = str(texto)
-    unidades_intermed = r"(?:UN|UNID|CJ|CX|DS|PCT|FD|SC)?"
-    unidade_final = r"(kg|g|gr|gr|ml|l|lt|lts|litros)"
 
+    texto = str(texto).upper().strip()
+
+    # -------------------------------------------------
+    # 1️⃣ Tenta capturar formatos de PESO / VOLUME (Kg, L, etc)
+    # -------------------------------------------------
+    unidades_intermed = r"(?:UN|UNID|CJ|CX|DS|PCT|FD|SC)?"
+    unidade_final = r"(KG|G|GR|GRS|ML|L|LT|LTS|LITROS)"
+    
+    # Casos compostos tipo 3x200G ou 2x500ML
     match_multi = re.search(rf"((?:\d+\s*{unidades_intermed}\s*[xX]\s*)+\d+[.,]?\d*\s*{unidade_final})", texto, re.IGNORECASE)
     if match_multi:
         bloco = match_multi.group(1)
@@ -52,6 +61,7 @@ def extrair_peso(texto):
             total *= n
         return bloco, int(total)
 
+    # Casos como 3x4x200ML
     match_3d = re.search(rf"(\d+)\s*[xX]\s*(\d+)\s*[xX]\s*(\d+[.,]?\d*)\s*{unidade_final}\b", texto, re.IGNORECASE)
     if match_3d:
         n1 = int(match_3d.group(1))
@@ -62,6 +72,7 @@ def extrair_peso(texto):
             valor *= 1000
         return match_3d.group(0), int(n1 * n2 * valor)
 
+    # Casos como 3x200ML
     match_2d = re.search(rf"(\d+)\s*[xX]\s*(\d+[.,]?\d*)\s*{unidade_final}\b", texto, re.IGNORECASE)
     if match_2d:
         n1 = int(match_2d.group(1))
@@ -71,6 +82,7 @@ def extrair_peso(texto):
             valor *= 1000
         return match_2d.group(0), int(n1 * valor)
 
+    # Casos simples como "200ML", "1L", "500G"
     match = re.search(rf"(\d+[.,]?\d*)\s*{unidade_final}\b", texto, re.IGNORECASE)
     if match:
         valor = float(match.group(1).replace(",", "."))
@@ -79,7 +91,30 @@ def extrair_peso(texto):
             valor *= 1000
         return match.group(0), int(valor)
 
+    # -------------------------------------------------
+    # 2️⃣ Caso não tenha achado peso/volume → tenta UNIDADES
+    # -------------------------------------------------
+    match_un = re.search(
+        r"(?:(\d+)\s*[xX]\s*)?(\d+)\s*(?:UN|UNID|UND|UNIDADE|UNIDADES|C\/\s*\d+|CJ|CX|PCT|FD|SC)\b",
+        texto,
+        re.IGNORECASE
+    )
+    if match_un:
+        multiplicador = int(match_un.group(1)) if match_un.group(1) else 1
+        unidades = int(match_un.group(2))
+        total = multiplicador * unidades
+        return match_un.group(0), total
+
+    # Casos tipo "C/32" ou "C24UN"
+    match_c = re.search(r"C\/\s*(\d+)", texto)
+    if match_c:
+        return match_c.group(0), int(match_c.group(1))
+
+    # -------------------------------------------------
+    # 3️⃣ Caso nada encontrado
+    # -------------------------------------------------
     return None, None
+
 
 # ----------------------------
 # Validador de preço por categoria (IQR 5-95%)
@@ -284,16 +319,6 @@ def to_excel_com_resumo(df, coluna_vendas):
         # worksheet.merge_range("A13:B13", "Top 50 Skus - Share Acumulado", gray_format)
 
     return output.getvalue()
-
-# ----------------------------
-# Colorir valores
-# ----------------------------
-def colorir_valores(val):
-    if val == "PROBLEMA":
-        return "background-color: #fff3cd"  # amarelo claro
-    elif val in ["OUTLIER", "OUTLIER_MEDIANA"]:
-        return "background-color: #f8d7da"  # vermelho claro
-    return ""
 
 # ----------------------------
 # Upload do arquivo
