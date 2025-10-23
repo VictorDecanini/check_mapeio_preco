@@ -92,38 +92,46 @@ def extrair_peso(texto):
         return match.group(0), int(valor)
 
     # -------------------------------------------------
-    # 2️⃣ Caso não tenha achado peso/volume → tenta UNIDADES (robusto, em três passos)
+    # 2️⃣ Caso não tenha achado peso/volume → tenta UNIDADES (robusto, cobre C/XX, C/XXxYY e XXxYY)
     # -------------------------------------------------
 
-    # 1) Padrões com número antes do sufixo de unidade: "3x12UN", "24 UN", "12UN", "2x24 UN"
+    # 1) Padrões com número antes do sufixo: "3x12UN", "24 UN", "12UN", "2x24 UN"
     match_un = re.search(
         r"(?:(\d+)\s*[xX]\s*)?(\d+)\s*(?:UN|UNID|UND|UNIDADE|UNIDADES|CJ|CX|PCT|FD|SC)\b",
         texto,
         re.IGNORECASE
     )
     if match_un:
-        multiplicador = int(match_un.group(1)) if match_un.group(1) else 1
-        unidades = int(match_un.group(2))
-        total = multiplicador * unidades
-        return match_un.group(0), total
+        mult = int(match_un.group(1)) if match_un.group(1) else 1
+        qtd = int(match_un.group(2))
+        return match_un.group(0), mult * qtd
 
-    # 2) Padrões "C/32", "C 32", "C.32", "C32" possivelmente com UN no final: "C/32UN", "C32UN"
-    #    Captura o número que está dentro do token após "C"
+    # 2) Padrões tipo "C/3X24", "C 2X6", "C.4X12"
+    match_c_pack = re.search(r"C[\s./]?(\d+)\s*[xX]\s*(\d+)\b", texto, re.IGNORECASE)
+    if match_c_pack:
+        mult = int(match_c_pack.group(1))
+        qtd = int(match_c_pack.group(2))
+        return match_c_pack.group(0), mult * qtd
+
+    # 3) Padrões simples "C/32", "C 32", "C.32", "C32"
     match_c = re.search(r"C[\s./]?(\d{1,4})\b", texto, re.IGNORECASE)
     if match_c:
         return match_c.group(0), int(match_c.group(1))
 
-    # 3) Fallback: última ocorrência numérica do texto (por ex. textos com "L34P32 32UN" -> pega 32)
-    #    Só usa como fallback quando não houver ambiguidade (você pode ajustar a lógica)
+    # 4) Padrões "3X12", "2X6", "4X24" sem UN no final
+    match_pack = re.search(r"(\d+)\s*[xX]\s*(\d+)\b", texto, re.IGNORECASE)
+    if match_pack:
+        mult = int(match_pack.group(1))
+        qtd = int(match_pack.group(2))
+        return match_pack.group(0), mult * qtd
+
+    # 5) Fallback: último número do texto (pode capturar casos residuais)
     nums = re.findall(r"\d+", texto)
     if nums:
-        # pega a *última* número do texto, que normalmente é a quantidade (ajuste se necessário)
         last = int(nums[-1])
-        # heurística: se o último número for <= 1000 e maior que 0, assume unidades
         if 0 < last <= 10000:
             return str(last), last
 
-    # Se nada for encontrado
 
 
     # -------------------------------------------------
