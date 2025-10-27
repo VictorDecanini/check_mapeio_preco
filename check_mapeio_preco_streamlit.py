@@ -132,8 +132,6 @@ def extrair_peso(texto):
         if 0 < last <= 10000:
             return str(last), last
 
-
-
     # -------------------------------------------------
     # 3️⃣ Caso nada encontrado
     # -------------------------------------------------
@@ -376,8 +374,8 @@ if uploaded_file is not None:
         "descricao": ["descripcion", "prod_nombre_original", "nome sku"],
         "contenido": ["contenido", "qtd conteúdo sku"],
         "preco": ["precio kg/lt", "preço convertido kg/lt r$", "preço kg/lt"],
-        "categoria": ["est mer 7 (subcategoria)", "nivel1"],
-        "vendas": ["imp vta (ult.24 meses)", "vendas em volume"]
+        "categoria": ["est mer 7 (subcategoria)", "nivel1", "Est Mer 7 Descripcion"],
+        "vendas": ["imp vta (ult.24 meses)", "vendas em volume", "Imp Vta (Ult 24Meses)"]
     }
 
     def encontrar_coluna(possiveis):
