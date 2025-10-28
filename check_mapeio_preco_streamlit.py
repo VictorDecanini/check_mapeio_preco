@@ -485,7 +485,7 @@ if uploaded_file is not None:
         try:
             # Normaliza nome da coluna de código de barras
             possiveis_ean_df = ["codigo barras", "código barras", "ean"]
-            possiveis_ean_aux = ["codigo barras", "código barras", "ean"]
+            possiveis_ean_aux = ["codigo barras", "código barras", "ean", "Codigo Barras"]
 
             def encontrar_ean(df_ref, lista_nomes):
                 for nome in lista_nomes:
