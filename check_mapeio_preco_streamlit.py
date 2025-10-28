@@ -497,11 +497,13 @@ if uploaded_file is not None:
     # ===================================================
     # 🔹 NOVO BLOCO: Cruzamento com base auxiliar por EAN
     # ===================================================
+    df_final = df.copy()
+
     if df_aux is not None:
         try:
             # Normaliza nome da coluna de código de barras
             possiveis_ean_df = ["codigo barras", "código barras", "ean"]
-            possiveis_ean_aux = ["codigo barras", "código barras", "ean", "Codigo Barras"]
+            possiveis_ean_aux = ["codigo barras", "código barras", "ean", "codigo_barras"]
 
             def encontrar_ean(df_ref, lista_nomes):
                 for nome in lista_nomes:
@@ -513,29 +515,33 @@ if uploaded_file is not None:
             col_ean_aux = encontrar_ean(df_aux, possiveis_ean_aux)
 
             if col_ean_df and col_ean_aux:
-                # Seleciona apenas colunas R, W e Y da base auxiliar (se existirem)
+                # Seleciona apenas colunas R, W e Y (independente de maiúsculas/minúsculas)
                 colunas_aux_interesse = ["r", "w", "y"]
-                colunas_aux_existentes = [c for c in colunas_aux_interesse if c in df_aux.columns]
+                colunas_aux_existentes = [
+                    c for c in df_aux.columns if c.lower() in colunas_aux_interesse
+                ]
 
-                # Faz o merge (left join para manter todos os da base principal)
-                df_final = df.merge(
-                    df_aux[[col_ean_aux] + colunas_aux_existentes],
-                    how="left",
-                    left_on=col_ean_df,
-                    right_on=col_ean_aux,
-                    suffixes=("", "_aux")
-                )
+                if colunas_aux_existentes:
+                    # Faz o merge mantendo todas as linhas do df principal
+                    df_final = df.merge(
+                        df_aux[[col_ean_aux] + colunas_aux_existentes],
+                        how="left",
+                        left_on=col_ean_df,
+                        right_on=col_ean_aux,
+                        suffixes=("", "_aux")
+                    ).drop(columns=[col_ean_aux])
 
-                st.success("✅ Cruzamento com a base auxiliar realizado com sucesso!")
+                    st.success(f"✅ Bases cruzadas com sucesso por '{col_ean_df}'. "
+                               f"Colunas adicionadas: {', '.join(colunas_aux_existentes)}")
+                else:
+                    st.warning("⚠️ Nenhuma das colunas R, W ou Y foi encontrada na base auxiliar.")
             else:
-                df_final = df
                 st.warning("⚠️ Não foi possível localizar a coluna de EAN em uma das bases.")
 
         except Exception as e:
             st.warning(f"⚠️ Erro ao cruzar as bases: {e}")
             df_final = df
-    else:
-        df_final = df
+
 
     # ===================================================
     # Resultado final
