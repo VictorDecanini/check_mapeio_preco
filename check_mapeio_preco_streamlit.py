@@ -343,28 +343,45 @@ def to_excel_com_resumo(df, coluna_vendas):
     return output.getvalue()
 
 # ----------------------------
-# Upload do arquivo
+# Upload do arquivo principal
 # ----------------------------
 uploaded_file = st.file_uploader("Escolha o arquivo Excel ou CSV", type=["xlsx", "csv"])
+
+# 🔹 Novo: Upload da base auxiliar
+uploaded_aux = st.file_uploader("📎 Envie a base validadora (para cruzar por EAN)", type=["xlsx", "csv"])
 
 if uploaded_file is not None:
     st.info("Processando arquivo...")
 
     # ----------------------------
-    # Leitura do arquivo
+    # Leitura do arquivo principal
     # ----------------------------
     if uploaded_file.name.endswith(".csv"):
         try:
             df = pd.read_csv(uploaded_file, encoding="latin-1", sep=None, engine="python")
         except UnicodeDecodeError:
             df = pd.read_csv(uploaded_file, encoding="utf-8", sep=None, engine="python")
-
     else:
         df = pd.read_excel(uploaded_file, header=0)
 
+    # 🔹 Novo: leitura da base auxiliar (se enviada)
+    df_aux = None
+    if uploaded_aux is not None:
+        try:
+            if uploaded_aux.name.endswith(".csv"):
+                df_aux = pd.read_csv(uploaded_aux, encoding="utf-8", sep=None, engine="python")
+            else:
+                df_aux = pd.read_excel(uploaded_aux)
+        except Exception as e:
+            st.warning(f"⚠️ Não foi possível ler a base auxiliar: {e}")
+            df_aux = None
+
     # ----------------------------
-    # Normalização de nomes de colunas
+    # Normalização de nomes
     # ----------------------------
+    df.columns = df.columns.str.strip().str.lower()
+    if df_aux is not None:
+        df_aux.columns = df_aux.columns.str.strip().str.lower()
     df.columns = df.columns.str.strip().str.lower()
 
     # ----------------------------
@@ -411,17 +428,16 @@ if uploaded_file is not None:
         st.stop()
 
     # ----------------------------
-    # Conversão da coluna de vendas para numérico e filtragem
+    # Conversão da coluna de vendas
     # ----------------------------
     df[coluna_vendas] = (
         df[coluna_vendas]
         .astype(str)
-        .str.replace(r"[^\d,.-]", "", regex=True)  # remove símbolos estranhos
-        .str.replace(".", "", regex=False)         # remove separador de milhar
-        .str.replace(",", ".", regex=False)        # converte vírgula decimal em ponto
+        .str.replace(r"[^\d,.-]", "", regex=True)
+        .str.replace(".", "", regex=False)
+        .str.replace(",", ".", regex=False)
     )
     df[coluna_vendas] = pd.to_numeric(df[coluna_vendas], errors="coerce")
-
     df = df[df[coluna_vendas] > 0]
 
     # ----------------------------
@@ -435,7 +451,6 @@ if uploaded_file is not None:
         try:
             if pd.isna(qtd_embalagem_gramas) or pd.isna(contenido):
                 return "PROBLEMA"
-
             contenido_val = float(str(contenido).replace(",", "."))
             return "OK" if abs(qtd_embalagem_gramas - contenido_val) < 1 else "PROBLEMA"
         except Exception:
@@ -452,7 +467,6 @@ if uploaded_file is not None:
     df["ValidacionPrecio"] = validar_precio_por_categoria(df, coluna_preco, coluna_categoria)
     df["ValidacionPrecioMediana"] = validar_precio_mediana(df, coluna_preco, coluna_categoria)
 
-    # Cria a coluna 'StatusGeral' indicando se há algum problema
     df["StatusGeral"] = df.apply(
         lambda x: "RISCO"
         if (
@@ -464,8 +478,54 @@ if uploaded_file is not None:
         axis=1
     )
 
+    # ===================================================
+    # 🔹 NOVO BLOCO: Cruzamento com base auxiliar por EAN
+    # ===================================================
+    if df_aux is not None:
+        try:
+            # Normaliza nome da coluna de código de barras
+            possiveis_ean_df = ["codigo barras", "código barras", "ean"]
+            possiveis_ean_aux = ["codigo barras", "código barras", "ean"]
 
+            def encontrar_ean(df_ref, lista_nomes):
+                for nome in lista_nomes:
+                    if nome in df_ref.columns:
+                        return nome
+                return None
+
+            col_ean_df = encontrar_ean(df, possiveis_ean_df)
+            col_ean_aux = encontrar_ean(df_aux, possiveis_ean_aux)
+
+            if col_ean_df and col_ean_aux:
+                # Seleciona apenas colunas R, W e Y da base auxiliar (se existirem)
+                colunas_aux_interesse = ["r", "w", "y"]
+                colunas_aux_existentes = [c for c in colunas_aux_interesse if c in df_aux.columns]
+
+                # Faz o merge (left join para manter todos os da base principal)
+                df_final = df.merge(
+                    df_aux[[col_ean_aux] + colunas_aux_existentes],
+                    how="left",
+                    left_on=col_ean_df,
+                    right_on=col_ean_aux,
+                    suffixes=("", "_aux")
+                )
+
+                st.success("✅ Cruzamento com a base auxiliar realizado com sucesso!")
+            else:
+                df_final = df
+                st.warning("⚠️ Não foi possível localizar a coluna de EAN em uma das bases.")
+
+        except Exception as e:
+            st.warning(f"⚠️ Erro ao cruzar as bases: {e}")
+            df_final = df
+    else:
+        df_final = df
+
+    # ===================================================
+    # Resultado final
+    # ===================================================
     st.success("✅ Processamento concluído com sucesso!")
+    st.dataframe(df_final.head(20))
 
 ###########################################################################
 ### FUNÇÃO PARA GERAR ABA NO EXCEL COM RESUMO DOS PROBLEMAS ENCONTRADOS ###
