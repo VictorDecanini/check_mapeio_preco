@@ -365,16 +365,32 @@ if uploaded_file is not None:
         df = pd.read_excel(uploaded_file, header=0)
 
     # 🔹 Novo: leitura da base auxiliar (se enviada)
+    # 🔹 Novo: leitura da base auxiliar (se enviada) - lê especificamente a aba "Planilha Validadora"
     df_aux = None
     if uploaded_aux is not None:
         try:
-            if uploaded_aux.name.endswith(".csv"):
+            filename_aux_lower = uploaded_aux.name.lower()
+            # Se for CSV, lemos normalmente (CSV não tem sheets)
+            if filename_aux_lower.endswith(".csv"):
                 df_aux = pd.read_csv(uploaded_aux, encoding="utf-8", sep=None, engine="python")
+                st.info("🔁 Base auxiliar lida como CSV (nenhuma aba disponível).")
             else:
-                df_aux = pd.read_excel(uploaded_aux)
+                # Tenta ler a aba "Planilha Validadora"
+                try:
+                    df_aux = pd.read_excel(uploaded_aux, sheet_name="PLANILHA VALIDADORA")
+                    st.info('✅ Aba "Planilha Validadora" encontrada e carregada da base auxiliar.')
+                except ValueError:
+                    # aba não encontrada — fallback para a primeira aba e aviso
+                    try:
+                        df_aux = pd.read_excel(uploaded_aux, sheet_name=0)
+                        st.warning('⚠️ Aba "Planilha Validadora" não encontrada — carregada a primeira aba como fallback.')
+                    except Exception as e_inner:
+                        st.warning(f"⚠️ Erro ao ler a base auxiliar (fallback): {e_inner}")
+                        df_aux = None
         except Exception as e:
             st.warning(f"⚠️ Não foi possível ler a base auxiliar: {e}")
             df_aux = None
+
 
     # ----------------------------
     # Normalização de nomes
