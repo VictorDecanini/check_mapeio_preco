@@ -14,11 +14,11 @@ st.set_page_config(
 st.markdown("<h1 style='text-align: center;'>Validador de Mapeio e Preços</h1>", unsafe_allow_html=True)
 st.markdown("""
 Para o funcionamento correto da ferramenta, são necessárias colunas que **tenham nomes semelhantes** aos seguintes:
-- `Descripcion`, `PROD_NOMBRE_ORIGINAL`, `Nome SKU`
-- `Contenido`, `Qtd Conteúdo SKU`
-- `Precio KG/LT`, `Preço convertido kg/lt R$`, `Preço kg/lt`
-- `Est Mer 7 (Subcategoria)`, `NIVEL1`
-- `Imp Vta (Ult.24 Meses)`, `Vendas em volume`
+- **Descrição:** `Descripcion`, `PROD_NOMBRE_ORIGINAL`, `Nome SKU`
+- **Contenido:** `Contenido`, `Qtd Conteúdo SKU`
+- **Preço Kg/Lt:** `Precio KG/LT`, `Preço convertido kg/lt R$`, `Preço kg/lt`
+- **Subcategoria:** `Est Mer 7 (Subcategoria)`, `NIVEL1`
+- **Venda em volume:** `Imp Vta (Ult.24 Meses)`, `Vendas em volume`
 
 A ferramenta faz:
 - Validação da quantidade de embalagem (`QtdEmbalagem` e `QtdEmbalagemGramas`)
@@ -345,10 +345,10 @@ def to_excel_com_resumo(df, coluna_vendas):
 # ----------------------------
 # Upload do arquivo principal
 # ----------------------------
-uploaded_file = st.file_uploader("Escolha o arquivo Excel ou CSV", type=["xlsx", "csv"])
+uploaded_file = st.file_uploader("Selecione o arquivo Excel ou CSV **Bruto** com a categoria em questão", type=["xlsx", "csv"])
 
 # 🔹 Novo: Upload da base auxiliar
-uploaded_aux = st.file_uploader("📎 Envie a base validadora (para cruzar por EAN)", type=["xlsx", "csv"])
+uploaded_aux = st.file_uploader("📎 Selecione a base validadora (para cruzar por EAN)", type=["xlsx", "csv"])
 
 if uploaded_file is not None:
     st.info("Processando arquivo...")
