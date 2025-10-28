@@ -529,12 +529,25 @@ if uploaded_file is not None:
                         left_on=col_ean_df,
                         right_on=col_ean_aux,
                         suffixes=("", "_aux")
-                    ).drop(columns=[col_ean_aux])
+                    )
 
-                    st.success(f"✅ Bases cruzadas com sucesso por '{col_ean_df}'. "
-                               f"Colunas adicionadas: {', '.join(colunas_aux_existentes)}")
+                    # 🔹 Garante que a coluna de EAN original da base principal seja preservada
+                    if col_ean_df not in df_final.columns:
+                        # Se por algum motivo sumiu, recria a partir do right_on
+                        df_final[col_ean_df] = df[col_ean_df]
+
+                    # 🔹 Evita perda de EAN quando as colunas tinham o mesmo nome
+                    if col_ean_aux in df_final.columns and col_ean_aux != col_ean_df:
+                        # Mantém o EAN da base principal, remove apenas o duplicado
+                        df_final = df_final.drop(columns=[col_ean_aux])
+
+                    st.success(
+                        f"✅ Bases cruzadas com sucesso por '{col_ean_df}'. "
+                        f"Colunas adicionadas: {', '.join(colunas_aux_existentes)}"
+                    )
                 else:
-                    st.warning("⚠️ Nenhuma das colunas R, W ou Y foi encontrada na base auxiliar.")
+                    st.warning("⚠️ Nenhuma das colunas de interesse foi encontrada na base auxiliar. "
+                            "Verifique os nomes: " + ", ".join(colunas_aux_interesse))
             else:
                 st.warning("⚠️ Não foi possível localizar a coluna de EAN em uma das bases.")
 
