@@ -596,11 +596,11 @@ if uploaded_file is not None:
 
 
     # Após processar o DataFrame df
-    df_resumo = gerar_resumo(df, coluna_vendas=coluna_vendas)
+    df_resumo = gerar_resumo(df_final, coluna_vendas=coluna_vendas)
 
     st.download_button(
     label="📥 Baixar Excel Processado com Resumo",
-    data=to_excel_com_resumo(df, coluna_vendas),
+    data=to_excel_com_resumo(df_final, coluna_vendas),
     file_name="dados_processados.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
