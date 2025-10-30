@@ -202,8 +202,10 @@ def to_excel_com_resumo(df, coluna_vendas):
                       (df["ValidacaoContenido"] != "PROBLEMA") & 
                       (df["ValidacionPrecioMediana"] == "OUTLIER_MEDIANA")).sum()
     outliers_somente_mediana = ((df["ValidacionPrecio"] != "OUTLIER") & 
+                                (df["ValidacaoContenido"] != "PROBLEMA") & 
                                 (df["ValidacionPrecioMediana"] == "OUTLIER_MEDIANA")).sum()
     outliers_somente_quartil = ((df["ValidacionPrecio"] == "OUTLIER") & 
+                                (df["ValidacaoContenido"] != "PROBLEMA") & 
                                 (df["ValidacionPrecioMediana"] != "OUTLIER_MEDIANA")).sum()
 
     problemas_valor_bruto = problemas_contenido + outliers_ambos + outliers_somente_mediana + outliers_somente_quartil
