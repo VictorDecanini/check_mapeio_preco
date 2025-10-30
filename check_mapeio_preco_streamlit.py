@@ -311,7 +311,7 @@ def to_excel_com_resumo(df, coluna_vendas):
             linha_atual = linha_inicial + i
             
             # Se chegamos à linha 8 (percentual), aplicamos o formato percentual
-            if linha_atual == 9:
+            if linha_atual == 8:
                 worksheet.write_number(linha_atual, 1, valor / 100, percent_format)
             else:
                 worksheet.write(linha_atual, 1, valor, number_format)
@@ -320,8 +320,8 @@ def to_excel_com_resumo(df, coluna_vendas):
             worksheet.write(linha_atual, 0, metrica, normal_format)
 
         # Inserir linha vazia após a linha 8 (que será a linha 9)
-        worksheet.write_blank(10, 0, None, normal_format)
-        worksheet.write_blank(10, 1, None, number_format)
+        worksheet.write_blank(9, 0, None, normal_format)
+        worksheet.write_blank(9, 1, None, number_format)
 
         # ----------------------------
         # BLOCOS COLORIDOS
