@@ -224,9 +224,9 @@ def to_excel_com_resumo(df, coluna_vendas):
         "Métrica": [
             "Qtd total de SKUs/Itens",
             "1. Skus com possíveis problemas de contenido",
-            "2. Outliers idenficados através da mediana (3x) e quartil (5%)",
-            "3. Outilers apenas mediana (3x)",
-            "4. Outliers apenas quartil (5%)",
+            "2. Outliers idenficados exclusivamente através da mediana (3x) e quartil (5%)",
+            "3. Outilers exclusivos apenas mediana (3x)",
+            "4. Outliers exclusivos apenas quartil (5%)",
             "Qtd de SKUs/itens com possíveis problemas",
             "'%' de SKUs/itens com possíveis problemas",
             "Volume de vendas total",
@@ -310,7 +310,7 @@ def to_excel_com_resumo(df, coluna_vendas):
             linha_atual = linha_inicial + i
             
             # Se chegamos à linha 8 (percentual), aplicamos o formato percentual
-            if linha_atual == 8:
+            if linha_atual == 9:
                 worksheet.write_number(linha_atual - 1, 1, valor / 100, percent_format)
             else:
                 worksheet.write(linha_atual - 1, 1, valor, number_format)
@@ -319,8 +319,8 @@ def to_excel_com_resumo(df, coluna_vendas):
             worksheet.write(linha_atual - 1, 0, metrica, normal_format)
 
         # Inserir linha vazia após a linha 8 (que será a linha 9)
-        worksheet.write_blank(8, 0, None, normal_format)
-        worksheet.write_blank(8, 1, None, number_format)
+        worksheet.write_blank(9, 0, None, normal_format)
+        worksheet.write_blank(9, 1, None, number_format)
 
         # ----------------------------
         # BLOCOS COLORIDOS
