@@ -307,6 +307,9 @@ def to_excel_com_resumo(df, coluna_vendas):
         linha_inicial = 3
 
         for i, (metrica, valor) in enumerate(zip(df_resumo["Métrica"], df_resumo["Valor"])):
+            if i in [6, 9]:  
+                continue
+            
             linha_atual = linha_inicial + i
             
             # Se chegamos à linha 8 (percentual), aplicamos o formato percentual
@@ -333,7 +336,7 @@ def to_excel_com_resumo(df, coluna_vendas):
         worksheet.write("B9", df_resumo.loc[6, "Valor"] / 100, percent_format)  # Qtd total problemas
 
         worksheet.write("A13", "% Volume de vendas dos skus com possíveis problemas", orange_bold_format)
-        worksheet.write_number("B13", df_resumo.loc[10, "Valor"] / 100, percent_format)
+        worksheet.write_number("B13", df_resumo.loc[9, "Valor"] / 100, percent_format)
 
         # # 3️⃣ Remove destaque do “Volume de vendas total” e insere linha em branco antes do “com problema”
         # worksheet.write("A10", "", empty_format)
