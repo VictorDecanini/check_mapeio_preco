@@ -325,7 +325,8 @@ def to_excel_com_resumo(df, coluna_vendas):
         worksheet.write_blank(9, 1, None, number_format)
 
         # Corrigir o valor da célula B11 (shift manual após o blank)
-        worksheet.write(10, 1, df_resumo["Valor"].iloc[7], number_format)        
+        worksheet.write(10, 1, df_resumo["Valor"].iloc[7], number_format)
+        worksheet.write(11, 1, df_resumo["Valor"].iloc[8], number_format)            
         # ----------------------------
         # BLOCOS COLORIDOS
         # ----------------------------
