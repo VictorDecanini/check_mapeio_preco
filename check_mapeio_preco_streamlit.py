@@ -318,13 +318,14 @@ def to_excel_com_resumo(df, coluna_vendas):
             
             # Escreve a métrica na coluna A
             worksheet.write(linha_atual, 0, metrica, normal_format)
-            worksheet.write(linha_atual, 1, valor, normal_format)
-                        
+
 
         # Inserir linha vazia após a linha 8 (que será a linha 9)
         worksheet.write_blank(9, 0, None, normal_format)
         worksheet.write_blank(9, 1, None, number_format)
 
+        # Corrigir o valor da célula B11 (shift manual após o blank)
+        worksheet.write(10, 1, df_resumo["Valor"].iloc[7], number_format)        
         # ----------------------------
         # BLOCOS COLORIDOS
         # ----------------------------
