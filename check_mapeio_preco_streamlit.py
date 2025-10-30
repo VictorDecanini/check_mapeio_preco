@@ -306,7 +306,7 @@ def to_excel_com_resumo(df, coluna_vendas):
         # Linha inicial para escrever os dados (começando na linha 4, pois linha 3 é cabeçalho)
         linha_inicial = 3
 
-        for i, (metrica, valor) in enumerate(zip(df_resumo["Métrica"], df_resumo["Valor"])):
+        for i, (metrica, valor) in enumerate(zip(df_resumo["Métrica"][1:], df_resumo["Valor"][1:])):
             
             linha_atual = linha_inicial + i
             
