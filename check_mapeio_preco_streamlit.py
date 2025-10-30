@@ -306,7 +306,7 @@ def to_excel_com_resumo(df, coluna_vendas):
         # Linha inicial para escrever os dados (começando na linha 4, pois linha 3 é cabeçalho)
         linha_inicial = 3
 
-        for i, (metrica, valor) in enumerate(zip(df_resumo["Métrica"][1:], df_resumo["Valor"])):
+        for i, (metrica, valor) in enumerate(zip(df_resumo["Métrica"][1:], df_resumo["Valor"][1:])):
             
             linha_atual = linha_inicial + i
             
@@ -318,6 +318,8 @@ def to_excel_com_resumo(df, coluna_vendas):
             
             # Escreve a métrica na coluna A
             worksheet.write(linha_atual, 0, metrica, normal_format)
+            worksheet.write(linha_atual, 1, valor, normal_format)
+                        
 
         # Inserir linha vazia após a linha 8 (que será a linha 9)
         worksheet.write_blank(9, 0, None, normal_format)
