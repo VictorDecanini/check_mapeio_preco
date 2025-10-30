@@ -310,13 +310,19 @@ def to_excel_com_resumo(df, coluna_vendas):
             linha_atual = linha_inicial + i
             
             # Se chegamos à linha 8 (percentual), aplicamos o formato percentual
+
+            if linha_atual < 9:
+                worksheet.write(linha_atual - 1, 0, metrica, normal_format)
+
             if linha_atual == 9:
                 worksheet.write_number(linha_atual - 1, 1, valor / 100, percent_format)
             else:
                 worksheet.write(linha_atual - 1, 1, valor, number_format)
             
-            # Escreve a métrica na coluna A
-            worksheet.write(linha_atual - 1, 0, metrica, normal_format)
+            if linha_atual > 9:
+                worksheet.write(linha_atual, 0, metrica, normal_format)
+            # # Escreve a métrica na coluna A
+            # worksheet.write(linha_atual - 1, 0, metrica, normal_format)
 
         # Inserir linha vazia após a linha 8 (que será a linha 9)
         worksheet.write_blank(9, 0, None, normal_format)
@@ -329,18 +335,15 @@ def to_excel_com_resumo(df, coluna_vendas):
         worksheet.merge_range("A3:B3", "Critérios de itens com possíveis problemas", gray_format)
 
         # 2️⃣ Linhas laranja — na mesma linha correta
-        worksheet.write("A9", "'%' de SKUs/itens com possíveis problemas", orange_bold_format)
+        worksheet.write("A9", "% de SKUs/itens com possíveis problemas", orange_bold_format)
         worksheet.write("B9", df_resumo.loc[6, "Valor"] / 100, percent_format)  # Qtd total problemas
 
         worksheet.write("A13", "% Volume de vendas dos skus com possíveis problemas", orange_bold_format)
         worksheet.write_number("B13", df_resumo.loc[9, "Valor"] / 100, percent_format)
 
-        # 3️⃣ Remove destaque do “Volume de vendas total” e insere linha em branco antes do “com problema”
-        worksheet.write("A10", "", empty_format)
-        worksheet.write("B10", "", empty_format)
-
-        # 4️⃣ Título inferior (Top 50 SKUs)
-        # worksheet.merge_range("A13:B13", "Top 50 Skus - Share Acumulado", gray_format)
+        # # 3️⃣ Remove destaque do “Volume de vendas total” e insere linha em branco antes do “com problema”
+        # worksheet.write("A10", "", empty_format)
+        # worksheet.write("B10", "", empty_format)
 
     return output.getvalue()
 
