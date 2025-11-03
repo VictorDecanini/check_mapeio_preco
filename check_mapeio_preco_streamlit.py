@@ -352,7 +352,7 @@ def to_excel_com_resumo(df, coluna_vendas):
 uploaded_file = st.file_uploader("Selecione o arquivo Excel ou CSV **Bruto** com a categoria em questão", type=["xlsx", "csv"])
 
 # 🔹 Novo: Upload da base auxiliar
-uploaded_aux = st.file_uploader("**PARA TIME DE DATA EXCELLENCE:** Selecione a base validadora (para cruzar por EAN)", type=["xlsx", "csv"])
+uploaded_aux = st.file_uploader("**APENAS PARA O TIME DE DATA EXCELLENCE:** Selecione a base validadora (para cruzar por EAN)", type=["xlsx", "csv"])
 
 if uploaded_file is not None:
     st.info("Processando arquivo...")
