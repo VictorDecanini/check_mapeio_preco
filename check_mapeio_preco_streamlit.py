@@ -520,7 +520,10 @@ if uploaded_file is not None:
 
             if col_ean_df and col_ean_aux:
                 # Seleciona apenas colunas R, W e Y (independente de maiúsculas/minúsculas)
-                colunas_aux_interesse = ["analise preço kg/lt", "mapeio pack", "localiza se há conteúdo no descritivo atual", "fórmula dun -> ean"]
+                colunas_aux_interesse = ["analise preço kg/lt", "mapeio pack", "localiza se há conteúdo no descritivo atual", 
+                                        "fórmula dun -> ean", "fabricante duplicado em relação ao dicionário?",
+                                        "localiza se há marca no descritivo atual", 
+                                        "localiza se há categoria no descritivo atual"]
                 colunas_aux_existentes = [
                     c for c in df_aux.columns if c.lower() in colunas_aux_interesse
                 ]
