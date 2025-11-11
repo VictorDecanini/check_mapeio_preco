@@ -224,8 +224,8 @@ def to_excel_com_resumo(df, coluna_vendas):
         "Métrica": [
             "Qtd total de SKUs/Itens",
             "1. Skus com possíveis problemas de contenido",
-            "2. Outliers idenficados exclusivamente através da mediana (3x) e quartil (5%)",
-            "3. Outilers exclusivos apenas mediana (3x)",
+            "2. Outliers idenficados exclusivamente através da mediana (5x) e quartil (5%)",
+            "3. Outilers exclusivos apenas mediana (5x)",
             "4. Outliers exclusivos apenas quartil (5%)",
             "Qtd de SKUs/itens com possíveis problemas",
             "'%' de SKUs/itens com possíveis problemas",
@@ -617,7 +617,6 @@ if uploaded_file is not None:
 
         # Retorna como DataFrame (uma linha)
         return pd.DataFrame([resumo])
-
 
 
     # Após processar o DataFrame df
