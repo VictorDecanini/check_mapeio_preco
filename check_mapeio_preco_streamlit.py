@@ -178,8 +178,8 @@ def validar_precio_mediana(df, coluna_preco, coluna_categoria):
 
     def marcar_por_mediana(grupo):
         mediana = grupo.median()
-        limite_inferior = mediana / 3
-        limite_superior = mediana * 3
+        limite_inferior = mediana / 5
+        limite_superior = mediana * 5
         return grupo.apply(lambda x: "OK" if limite_inferior <= x <= limite_superior else "OUTLIER_MEDIANA")
     return df.groupby(coluna_categoria)[coluna_preco].transform(marcar_por_mediana)
 
