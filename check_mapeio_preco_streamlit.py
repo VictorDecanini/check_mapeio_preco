@@ -118,6 +118,23 @@ def extrair_peso(texto):
     if match_c:
         return match_c.group(0), int(match_c.group(1))
 
+    # -------------------------------------------------
+    # 3️⃣ Papel Higiênico (Rolos e Leve/Pague)
+    # -------------------------------------------------
+    match_rolos = re.search(r"(\d+)[xX](\d+)R\b", texto)
+    if match_rolos:
+        qtd_total = int(match_rolos.group(1)) * int(match_rolos.group(2))
+        return match_rolos.group(0), qtd_total
+
+    match_leve_pague = re.search(r"L(\d+)\s*P\d+", texto, re.IGNORECASE)
+    if match_leve_pague:
+        qtd = int(match_leve_pague.group(1))
+        return match_leve_pague.group(0), qtd
+
+    # ------------------------------------------------------
+    # 3️⃣ Fallback - identificar casos sem unidade de medida
+    # ------------------------------------------------------
+
     # 4) Padrões "3X12", "2X6", "4X24" sem UN no final
     match_pack = re.search(r"(\d+)\s*[xX]\s*(\d+)\b", texto, re.IGNORECASE)
     if match_pack:
@@ -131,20 +148,7 @@ def extrair_peso(texto):
         last = int(nums[-1])
         if 0 < last <= 10000:
             return str(last), last
-
-    # -------------------------------------------------
-    # 3️⃣ NOVO CASO: Papel Higiênico (Rolos e Leve/Pague)
-    # -------------------------------------------------
-    match_rolos = re.search(r"(\d+)[xX](\d+)R\b", texto)
-    if match_rolos:
-        qtd_total = int(match_rolos.group(1)) * int(match_rolos.group(2))
-        return match_rolos.group(0), qtd_total
-
-    match_leve_pague = re.search(r"L(\d+)\s*P\d+", texto, re.IGNORECASE)
-    if match_leve_pague:
-        qtd = int(match_leve_pague.group(1))
-        return match_leve_pague.group(0), qtd
-
+        
     # -------------------------------------------------
     # 3️⃣ Caso nada encontrado
     # -------------------------------------------------
