@@ -133,6 +133,19 @@ def extrair_peso(texto):
             return str(last), last
 
     # -------------------------------------------------
+    # 3️⃣ NOVO CASO: Papel Higiênico (Rolos e Leve/Pague)
+    # -------------------------------------------------
+    match_rolos = re.search(r"(\d+)[xX](\d+)R\b", texto)
+    if match_rolos:
+        qtd_total = int(match_rolos.group(1)) * int(match_rolos.group(2))
+        return match_rolos.group(0), qtd_total
+
+    match_leve_pague = re.search(r"L(\d+)\s*P\d+", texto, re.IGNORECASE)
+    if match_leve_pague:
+        qtd = int(match_leve_pague.group(1))
+        return match_leve_pague.group(0), qtd
+
+    # -------------------------------------------------
     # 3️⃣ Caso nada encontrado
     # -------------------------------------------------
     return None, None
