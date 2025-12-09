@@ -375,8 +375,8 @@ uploaded_files = st.file_uploader(
 )
 
 
-if uploaded_files is not None:
-    nome_base = uploaded_files.name.rsplit(".", 1)[0]
+# if uploaded_files is not None:
+#     nome_base = uploaded_files.name.rsplit(".", 1)[0]
 
 # 🔹 Novo: Upload da base auxiliar
 uploaded_aux = st.file_uploader("**APENAS PARA O TIME DE DATA EXCELLENCE:** Selecione a base validadora (para cruzar por EAN)", type=["xlsx", "csv"])
