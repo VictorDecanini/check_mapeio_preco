@@ -366,34 +366,27 @@ def to_excel_com_resumo(df, coluna_vendas):
 # ----------------------------
 # Upload do arquivo principal
 # ----------------------------
-# uploaded_file = st.file_uploader("Selecione o arquivo Excel ou CSV **Bruto** com a categoria em questão", type=["xlsx", "csv"])
+uploaded_file = st.file_uploader("Selecione o arquivo Excel ou CSV **Bruto** com a categoria em questão", type=["xlsx", "csv"])
 
-uploaded_files = st.file_uploader(
-    "Selecione um ou mais arquivos Excel ou CSV **Brutos**",
-    type=["xlsx", "csv"],
-    accept_multiple_files=True
-)
-
-
-# if uploaded_files is not None:
-#     nome_base = uploaded_files.name.rsplit(".", 1)[0]
+if uploaded_file is not None:
+    nome_base = uploaded_file.name.rsplit(".", 1)[0]
 
 # 🔹 Novo: Upload da base auxiliar
 uploaded_aux = st.file_uploader("**APENAS PARA O TIME DE DATA EXCELLENCE:** Selecione a base validadora (para cruzar por EAN)", type=["xlsx", "csv"])
 
-arquivos_processados = []
-if uploaded_files is not None:
-    for uploaded_file in uploaded_files:
-        nome_base = uploaded_file.name.rsplit(".", 1)[0]
+if uploaded_file is not None:
+    st.info("Processando arquivo...")
 
-        # Leitura do arquivo
-        if uploaded_file.name.endswith(".csv"):
-            try:
-                df = pd.read_csv(uploaded_file, encoding="latin-1", sep=None, engine="python")
-            except:
-                df = pd.read_csv(uploaded_file, encoding="utf-8", sep=None, engine="python")
-        else:
-            df = pd.read_excel(uploaded_file)
+    # ----------------------------
+    # Leitura do arquivo principal
+    # ----------------------------
+    if uploaded_file.name.endswith(".csv"):
+        try:
+            df = pd.read_csv(uploaded_file, encoding="latin-1", sep=None, engine="python")
+        except UnicodeDecodeError:
+            df = pd.read_csv(uploaded_file, encoding="utf-8", sep=None, engine="python")
+    else:
+        df = pd.read_excel(uploaded_file, header=0)
 
     # 🔹 Novo: leitura da base auxiliar (se enviada)
     # 🔹 Novo: leitura da base auxiliar (se enviada) - lê especificamente a aba "Planilha Validadora"
@@ -645,35 +638,14 @@ if uploaded_files is not None:
         # Retorna como DataFrame (uma linha)
         return pd.DataFrame([resumo])
 
-    excel_bytes = to_excel_com_resumo(df_final, coluna_vendas)
-
-    arquivos_processados.append((nome_base, excel_bytes))
 
     # Após processar o DataFrame df
     df_resumo = gerar_resumo(df_final, coluna_vendas=coluna_vendas)
 
-    import zipfile
-    import io
-
-    if arquivos_processados:
-        zip_buffer = io.BytesIO()
-
-        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
-            for nome_base, excel_bytes in arquivos_processados:
-                zipf.writestr(f"{nome_base}_analise_risco.xlsx", excel_bytes)
-
-        st.download_button(
-            label="📦 Baixar todos os arquivos analisados (ZIP)",
-            data=zip_buffer.getvalue(),
-            file_name="analises_risco.zip",
-            mime="application/zip"
-        )
-
-
-    # st.download_button(
-    # label="📥 Baixar Excel Processado com Resumo",
-    # data=to_excel_com_resumo(df_final, coluna_vendas),
-    # file_name=f"{nome_base}_analise_risco.xlsx",
-    # mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    # )
+    st.download_button(
+    label="📥 Baixar Excel Processado com Resumo",
+    data=to_excel_com_resumo(df_final, coluna_vendas),
+    file_name=f"{nome_base}_analise_risco.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
