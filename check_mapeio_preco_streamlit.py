@@ -368,6 +368,9 @@ def to_excel_com_resumo(df, coluna_vendas):
 # ----------------------------
 uploaded_file = st.file_uploader("Selecione o arquivo Excel ou CSV **Bruto** com a categoria em questão", type=["xlsx", "csv"])
 
+if uploaded_file is not None:
+    nome_base = uploaded_file.name.rsplit(".", 1)[0]
+
 # 🔹 Novo: Upload da base auxiliar
 uploaded_aux = st.file_uploader("**APENAS PARA O TIME DE DATA EXCELLENCE:** Selecione a base validadora (para cruzar por EAN)", type=["xlsx", "csv"])
 
@@ -642,7 +645,7 @@ if uploaded_file is not None:
     st.download_button(
     label="📥 Baixar Excel Processado com Resumo",
     data=to_excel_com_resumo(df_final, coluna_vendas),
-    file_name="dados_processados.xlsx",
+    file_name=f"{nome_base}_analise_risco.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
